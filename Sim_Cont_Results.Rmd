@@ -1,0 +1,2366 @@
+---
+title: "Assessing the properties of the prediction interval in random-effects meta-analysis"
+date: "`r Sys.Date()`"
+output: rmdformats::downcute
+lang: hu-hu
+# css: downcute.css
+knit: (function(inputFile, encoding) { 
+    rmarkdown::render(
+        inputFile, encoding = encoding, 
+        output_file = file.path(
+            dirname(inputFile), paste0("Sim_results_ALL", ".html"))) 
+    })
+---
+
+&nbsp;
+&nbsp;
+
+This a Supplementary file for the article **Assessing the properties of the prediction interval in random-effects meta-analysis** containing all simulation results. 
+&nbsp;
+
+
+**Authors:** Peter Matrai^1,2^, Tamas Koi^3,4^, Zoltan Sipos^1,2^, Nelli Farkas^1,2^ \
+&nbsp;
+
+^1^	 Institute for Bioanalysis, Medical School, University of Pecs, Pecs, Hungary \
+^2^	 Institute for Translational Medicine, Medical School, University of Pecs, Pecs, Hungary \
+^3^	 Department of Stochastics, Institute of Mathematics, Budapest University of Technology and Economics, Budapest, Hungary \
+^4^  Centre for Translational Medicine, Semmelweis University, Budapest, Hungary \	 
+
+
+
+<!--- These are the general settings for all chunks --->
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = "",
+                      prompt = FALSE,
+                      fig.dim = c(9, 4),
+                      #out.width = "48%"
+                      #cache = TRUE
+                      #fig.align = 'center'
+                      tidy = TRUE)
+
+```
+
+
+<!--- In this chunk you can set:
+        - a basedir, the location of the "Base_parameters.R"  file
+        - which distribution and which runs you want to display
+        - which methods you want to display
+        - if you want to display the parametric bootstrap (Nag_to_display) and which runs
+        - if you want to display the histograms of coverage probabilities (Hist_to_display)
+        - if you want to display the other 5 plots (Other_plots_to_display)
+--->
+```{r base_settings}
+
+ basedir <- "D:/Matrai_Peter/Sim_To_Article/"
+
+
+# choose which random effects distribution and which runs to display
+# set 1 if you want to display that distribution and set 0 if you do not want.
+# you can set the runs in the form 1:n, it means that runs from 1 to n will be processed and displayed. There are 5 runs from each distribution
+
+Normal_to_display <- 1
+Normal_run_to_display <- 1:5
+
+Uniform_to_display <- 1
+Uniform_run_to_display <- 1:5
+
+Skewed_Normal_50_to_display <- 1
+Skewed_Normal_50_run_to_display <- 1:5
+
+Skewed_Normal_75_to_display <- 1
+Skewed_Normal_75_run_to_display <- 1:5
+
+Skewed_Normal_99_to_display <- 1
+Skewed_Normal_99_run_to_display <- 1:5
+
+Bimodal_to_display <- 1
+Bimodal_run_to_display <- 1:5
+
+
+# Methods to display
+# set 1 if you want to display that method and set 0 if you do not want.
+
+HTS_DL_to_display <- 1
+HTS_REML_to_display <- 0
+HTS_HK_REML_to_display <- 1
+HTS_DL_k_1_to_display <- 1 
+HTS_DL_z_to_display <- 1 
+Wang_to_display <- 1  # this is the Ensemble method
+
+
+# set 1 if you want to display the parametric bootstrap method and set 0 if you do not want.
+
+Nag_to_display <- 1
+
+# you can set the runs for the the parametric bootstrap method in the form 1:n, it means that runs from 1 to n will be processed and displayed. There is only 1 run available for this method. 
+
+Nag_Normal_run_to_display <- 1:1
+
+Nag_Uniform_run_to_display <- 1:1
+
+Nag_Skewed_Normal_50_run_to_display <- 1:1
+
+Nag_Skewed_Normal_75_run_to_display <- 1:1
+
+Nag_Skewed_Normal_99_run_to_display <- 1:1
+
+Nag_Bimodal_run_to_display <- 1:1
+
+# Set TRUE if you want to display the histograms of coverage probabilities (Hist_to_display) or set FALSE
+
+Hist_to_display <-        T
+
+# Set TRUE if you want to display the other 5 plots (Other_plots_to_display) or set FALSE
+
+Other_plots_to_display <- T
+
+
+```
+
+
+
+<!--- Here the "Base_parameters.R" file is read in and then the settings given in the previous chunk are applied --->
+```{r preparations}
+
+# Run Base_parameters r code
+source(file=paste0(basedir, "Base_parameters.R") )
+
+# All methods to loop over when performance is computed. Order has to be the same as in settings.
+all_method_names <- c("HTS_DL", 
+                      "HTS_REML", 
+                      "HTS_HK_REML", 
+                      "HTS_DL_k_1", 
+                      "HTS_DL_z",
+                  
+                      "Wang"
+                    )
+
+all_methods_to_legend <- c("HTS-DL (t, k-2)",
+                           "HTS-REML (t, k-2)",
+                           "HTS-HKSJ (t, k-2)",
+                           "HTS-DL (t, k-1)",
+                           "HTS-DL (z)",
+                           
+                           "Ensemble method"
+                           )
+
+# create method names vector to loop over. All methods will be computed irrespective of to display settings 
+method_names <- all_method_names
+
+# Create logical vector from input settings, order is important!
+methods_to_display <-   as.logical(c(
+  
+                            HTS_DL_to_display,
+                            HTS_REML_to_display,
+                            HTS_HK_REML_to_display,
+                            HTS_DL_k_1_to_display,
+                            HTS_DL_z_to_display,
+                            
+                            Wang_to_display
+                            ))
+
+
+# Vector of methods for the display based on setting above
+to_display_method_names <- all_method_names[ as.logical(methods_to_display) ]
+
+# vector of methods to legend
+to_display_legend_names <- all_methods_to_legend[ as.logical(methods_to_display) ]
+
+
+if(Nag_to_display == 1) {to_display_method_names <- c(to_display_method_names, "Nagashima") }
+if(Nag_to_display == 1) {to_display_legend_names <- c(to_display_legend_names, "Parametric bootstrap") }
+
+# logical vector which dist to display. Order is important.
+dist_to_display <-   as.logical(c(
+  
+                     Normal_to_display,
+                     Skewed_Normal_50_to_display,
+                     Skewed_Normal_75_to_display,
+                     Skewed_Normal_99_to_display,
+                     Bimodal_to_display,
+                     Uniform_to_display) )
+
+
+# Dists in sim. Order has to be the same as in settings.
+all_distributions <- c("Normal",
+                      "Skewed_Normal_50",
+                      "Skewed_Normal_75",
+                      "Skewed_Normal_99",
+                      "Bimodal",
+                      "Uniform")
+
+
+# Vector of dists for the display based on setting above
+distributions <- all_distributions[ as.logical(dist_to_display) ]
+
+
+
+all_distributions_displayed_name <- c(
+                      "Normal",
+                      "Skewed normal (0.5)",
+                      "Skewed normal (0.75)",
+                      "Skewed normal (0.99)",
+                      "Bimodal",
+                      "Uniform")
+
+
+
+distribution_displayed_name <- all_distributions_displayed_name[ as.logical(dist_to_display) ]
+
+# All colours to use in display. Order has to be the same as in settings. 
+all_colours <- c("blue4", "purple4", "olivedrab", "turquoise2", "mediumpurple1", "sienna")
+
+# Choose those colours only for which the method is set 
+colours_to_display <- all_colours[ as.logical(methods_to_display) ]
+
+if(Nag_to_display == 1) {colours_to_display <- c(colours_to_display, "orange") }
+
+# All pch. Order has to be the same as in settings. 
+all_pch <- 1:6
+
+# Choose those pch only for which the method is set 
+pch_to_display <- all_pch[ as.logical(methods_to_display) ]
+
+if(Nag_to_display == 1) {pch_to_display <- c(pch_to_display, length(all_pch) +1 ) }
+
+
+#n_pattern_ciklus <- gsub( "_"," ",n_pattern) # for the display, replace _ with space in n_pattern
+
+n_pattern_ciklus <- c(n_numbers, "mixed")
+
+# create variable names for results
+# varlist_results is defined in Base_parameters
+varlist_results_list <- varlist_results
+
+```
+
+
+<!---  Load normal dist. run 1 and compute true mean SE, later they will be displayed on the plots to assess heterogeneity --->
+```{r compute_mean_SE2, eval=Other_plots_to_display}
+
+# its name will be gen_list
+load(file = paste0(basedir,"RE_distributions/","Normal/", "Gen_list_", "Normal", "_Run_", 1, ".RData") )
+
+# this array will contain true mean SE for each n, withis sigma2 and allocation 
+mean_se2<-array(dim = c(length(k), length(n_pattern) ))
+
+dimnames(mean_se2) <- list(
+  "all_study"=k,
+  "n_pattern"=n_pattern)
+
+for (w in 1:length(k)){
+  for (q in 1: length(n_pattern)) {
+      mean_se2[w,q] <-  mean(gen_list$true_SE2[ , , w, q, ], na.rm=T)
+  }
+}
+
+# delete gen_list from memory
+rm(gen_list)
+
+
+```
+
+
+
+<!---  Load  Res_list RData files computed from normal RE distribution and compute coverage probabilities and other summary statistics for each method except the parametric bootstrap--->
+```{r load_Normal_data}
+
+# load, merge and compute results if this distribution results is set to 1
+if (Normal_to_display ==1){
+  
+  # create results varlist for this distribution
+  varlist_results_Normal_list  <- paste0(varlist_results_list ,"_Normal_list")  # lists to store runs
+  varlist_results_Normal       <- paste0(varlist_results_list, "_Normal")       # varnames for merged runs (merge with abind)
+  n_sim_normal <- matrix(0, nrow = 1, ncol = max(Normal_run_to_display) )
+  
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Normal_list)) {
+  assign(varlist_results_Normal_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Normal_run_to_display) {
+    load( file = paste0(basedir,"RE_distributions/", "Normal", "/Res_list_Many_", "Normal", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Many_Normal_Run_" ,i), res_list)
+    n_sim_normal[1,i]<- dim(res_list[["teta_new"]])[1]
+    rm(res_list)
+    
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Normal_list)) {
+      eval(parse(text = paste0( varlist_results_Normal_list[[j]],"[[i]]", "<- get(","'", "Res_list_Many_Normal_Run_",  i ,"'", ")[[ ","'", varlist_results_list[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Normal)) {
+      eval(parse(text = paste0( varlist_results_Normal[[a]]," <- abind(get(varlist_results_Normal_list[[a]]), along=1)" ) ))
+  }
+  
+  
+  # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(true_PI_lower_Normal)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(true_PI_lower_Normal)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2
+  ) 
+  
+# Compute summary statistics for this distribution from merged runs    
+   
+ for (i in 1:length(method_names)) {  # loop over the methods
+   
+     # Test if PI contains newly generated teta and compute average 
+     eval(parse(text = paste0(   method_names[i], "_coverage_Normal <- colMeans(", method_names[i],"_PI_lower_Normal < teta_new_Normal & ",  method_names[i],"_PI_upper_Normal > teta_new_Normal, dims = 1, na.rm = TRUE)"  )))
+   
+
+     
+     #Compute length of observed PI (not the mean but for each sim)
+     eval(parse(text = paste0(   method_names[i], "_PI_length_Normal <- (", method_names[i], "_PI_upper_Normal - ", method_names[i], "_PI_lower_Normal)" )))
+     
+     #Compute true PI length
+      eval(parse(text = paste0( "true_PI_length_Normal <- true_PI_upper_Normal - true_PI_lower_Normal" )))
+     
+     
+     #Compute ratio of observed and true length of PI 
+     eval(parse(text = paste0(   method_names[i], "_PI_length_ratio_Normal <- colMeans( (", method_names[i], "_PI_upper_Normal - ", method_names[i], "_PI_lower_Normal) / (true_PI_upper_Normal - true_PI_lower_Normal)  , dims = 1, na.rm = T)" ))) 
+     
+     
+     #Compute mean absolute difference of observed and true PI length relative to true PI length
+     eval(parse(text = paste0(   method_names[i], "_abs_diff_observed_true_length_Normal <- colMeans( abs( (", method_names[i], "_PI_upper_Normal - ", method_names[i], "_PI_lower_Normal) - (true_PI_length_Normal)  ) / true_PI_length_Normal, dims = 1, na.rm = T)" ))) 
+     
+
+     
+    # Create empty arrays with predefined dims and dimnames for quantile coverage
+    eval(parse(text = paste0(   method_names[i], "_quantile_cov_Normal <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)"))) 
+     
+    
+ } # end of loop of methods
+  
+  # compute mean I2
+  mean_I2_Normal <- colMeans(I2_Normal, dims = 1, na.rm = T)
+
+
+  # Compute what percentage of the tau2 estimates is 0
+  REML_tau2_0_Normal <- colMeans(tau2_REML_Normal==0, dims = 1, na.rm = T)
+  DL_tau2_0_Normal   <- colMeans(tau2_DL_Normal ==0, dims = 1, na.rm = T)
+
+
+  # Compute how many of REML estimation failed to converge 
+  REML_tau2_NA_Normal <- colSums(is.na(tau2_REML_Normal), dims = 1)
+  
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_normal
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      HTS_DL_quantile_cov_Normal[, , ,i] <-  CDF_function(HTS_DL_PI_upper_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_PI_lower_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_REML_quantile_cov_Normal[, , ,i] <-  CDF_function(HTS_REML_PI_upper_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_REML_PI_lower_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_HK_REML_quantile_cov_Normal[, , ,i] <-  CDF_function(HTS_HK_REML_PI_upper_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_HK_REML_PI_lower_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_k_1_quantile_cov_Normal[, , ,i] <-  CDF_function(HTS_DL_k_1_PI_upper_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_k_1_PI_lower_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_z_quantile_cov_Normal[, , ,i] <-  CDF_function(HTS_DL_z_PI_upper_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_z_PI_lower_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+
+      
+      Wang_quantile_cov_Normal[, , ,i] <-  CDF_function(Wang_PI_upper_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Wang_PI_lower_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+    
+      
+}
+
+  for (i in 1:length(method_names)) {  # loop over the methods again
+
+    # Compute mean of coverages
+    eval(parse(text = paste0(   method_names[i],  "_quantile_coverage_Normal <- colMeans(" , method_names[i],"_quantile_cov_Normal, dims = 1, na.rm = T)" )))
+  
+    
+    # Compute median of coverages
+    eval(parse(text = paste0(   method_names[i],  "_median_quantile_coverage_Normal <- apply(" , method_names[i],"_quantile_cov_Normal, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)" )))
+
+  # Compute mean absolute difference from 95% coverage
+    eval(parse(text = paste0(   method_names[i], "_mean_diff_from_95_cov_Normal  <- colMeans( abs(", method_names[i],"_quantile_cov_Normal -",PI_level,"), dims = 1, na.rm = T)" )))
+    
+
+  }
+  
+}
+
+
+
+```
+
+<!---  Load  Res_list_Nag RData files computed from normal RE distribution and compute coverage probabilities and other summary statistics for the parametric bootstrap method--->
+```{r load_Nag_Normal_data, eval= Normal_to_display == 1 & Nag_to_display == 1 }
+
+ # create results varlist for this distribution
+ 
+  varlist_Nag <- c("Nagashima_PI_lower","Nagashima_PI_upper", "Nagashima_true_PI_lower", "Nagashima_true_PI_upper", "Nagashima_teta_new" )
+
+  varlist_results_Nag_Normal_list  <- paste0( varlist_Nag ,"_Normal_list")  # lists to store runs
+  varlist_results_Nag_Normal       <- paste0(varlist_Nag, "_Normal")            # varnames for merged runs (merge with abind)
+
+
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Nag_Normal_list)) {
+  assign(varlist_results_Nag_Normal_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Nag_Normal_run_to_display) {
+    load( file = paste0(basedir,"RE_distributions/", "Normal", "/Res_list_Nag_", "Normal", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Nag_Normal_Run_" ,i), res_list_Nag)
+    rm(res_list_Nag)
+    
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Nag_Normal_list)) {
+      eval(parse(text = paste0( varlist_results_Nag_Normal_list[[j]],"[[i]]", "<- get(","'", "Res_list_Nag_Normal_Run_",  i ,"'", ")[[ ","'", varlist_Nag[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Nag_Normal)) {
+      eval(parse(text = paste0( varlist_results_Nag_Normal[[a]]," <- abind(get(varlist_results_Nag_Normal_list[[a]]), along=1)" ) ))
+  }
+  
+
+   # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(Nagashima_true_PI_lower_Normal)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(Nagashima_true_PI_lower_Normal)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2
+  ) 
+  
+# Compute summary statistics for this distribution from merged runs    
+
+   # Test if PI contains newly generated teta and compute average 
+   Nagashima_coverage_Normal <- colMeans(Nagashima_PI_lower_Normal < Nagashima_teta_new_Normal & Nagashima_PI_upper_Normal > Nagashima_teta_new_Normal, dims = 1, na.rm = TRUE)
+   
+
+    
+     #Compute length of observed PI (not the mean but for each sim)
+     Nagashima_PI_length_Normal <- Nagashima_PI_upper_Normal - Nagashima_PI_lower_Normal
+     
+     
+     #Compute ratio of observed and true length of PI 
+     Nagashima_PI_length_ratio_Normal <- colMeans( (Nagashima_PI_upper_Normal - Nagashima_PI_lower_Normal) / (Nagashima_true_PI_upper_Normal - Nagashima_true_PI_lower_Normal), dims = 1, na.rm = T)
+     
+
+     #Compute mean absolute difference of observed and true PI length relative to true PI length
+     Nagashima_abs_diff_observed_true_length_Normal <- colMeans( abs( (Nagashima_PI_upper_Normal -  Nagashima_PI_lower_Normal) - (Nagashima_true_PI_upper_Normal - Nagashima_true_PI_lower_Normal)  ) / (Nagashima_true_PI_upper_Normal - Nagashima_true_PI_lower_Normal), dims = 1, na.rm = T)  
+     
+     
+   
+   # Create empty arrays with predefined dims and dimnames for quantile coverage 
+   Nagashima_quantile_cov_Normal <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)
+
+  
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_normal
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      Nagashima_quantile_cov_Normal[, , ,i] <-  CDF_function(Nagashima_PI_upper_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Nagashima_PI_lower_Normal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+}
+
+  # Compute mean of coverages
+  Nagashima_quantile_coverage_Normal <- colMeans(Nagashima_quantile_cov_Normal, dims = 1, na.rm = T)
+  
+  # Compute median of coverages
+  Nagashima_median_quantile_coverage_Normal <-  apply(Nagashima_quantile_cov_Normal, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)
+  
+
+  # Compute mean absolute difference from 95% coverage
+  Nagashima_mean_diff_from_95_cov_Normal<- colMeans( abs( Nagashima_quantile_cov_Normal - PI_level), dims = 1, na.rm = T)
+  
+
+```
+
+
+
+<!---  Same computations for the uniform, the skewed and the bimodal distributions--->
+
+```{r load_Uniform_data}
+
+# load, merge and compute results if this distribution results is set to 1
+if (Uniform_to_display ==1){
+  
+  # create results varlist for this distribution
+  varlist_results_Uniform_list  <- paste0(varlist_results_list ,"_Uniform_list")  # lists to store runs
+  varlist_results_Uniform       <- paste0(varlist_results_list, "_Uniform")       # varnames for merged runs (merge with abind)
+  n_sim_uniform <- matrix(0, nrow = 1, ncol = max(Uniform_run_to_display) )
+  
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Uniform_list)) {
+  assign(varlist_results_Uniform_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Uniform_run_to_display) {
+    load( file = paste0(basedir, "RE_distributions/", "Uniform", "/Res_list_Many_", "Uniform", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Many_Uniform_Run_" ,i), res_list)
+    n_sim_uniform[1,i]<- dim(res_list[["teta_new"]])[1]
+    rm(res_list)
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Uniform_list)) {
+      eval(parse(text = paste0( varlist_results_Uniform_list[[j]],"[[i]]", "<- get(","'", "Res_list_Many_Uniform_Run_",  i ,"'", ")[[ ","'", varlist_results_list[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Uniform)) {
+      eval(parse(text = paste0( varlist_results_Uniform[[a]]," <- abind(get(varlist_results_Uniform_list[[a]]), along=1)" ) ))
+  }
+  
+  
+  # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(true_PI_lower_Uniform)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(true_PI_lower_Uniform)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2) 
+  
+
+# Compute summary statistics for this distribution from merged runs    
+   
+ for (i in 1:length(method_names)) {  # loop over the methods
+   
+     # Test if PI contains newly generated teta and compute average 
+     eval(parse(text = paste0(   method_names[i], "_coverage_Uniform <- colMeans(", method_names[i],"_PI_lower_Uniform < teta_new_Uniform & ",  method_names[i],"_PI_upper_Uniform > teta_new_Uniform, dims = 1, na.rm = TRUE)"  )))
+   
+     
+      #Compute length of observed PI (not the mean but for each sim)
+     eval(parse(text = paste0(   method_names[i], "_PI_length_Uniform <- (", method_names[i], "_PI_upper_Uniform - ", method_names[i], "_PI_lower_Uniform)" )))
+     
+     #Compute true PI length
+      eval(parse(text = paste0( "true_PI_length_Uniform <- true_PI_upper_Uniform - true_PI_lower_Uniform" )))
+     
+     
+     #Compute ratio of observed and true length of PI 
+     eval(parse(text = paste0(   method_names[i], "_PI_length_ratio_Uniform <- colMeans( (", method_names[i], "_PI_upper_Uniform - ", method_names[i], "_PI_lower_Uniform) / (true_PI_upper_Uniform - true_PI_lower_Uniform)  )" ))) 
+     
+          #Compute mean absolute difference of observed and true PI length relative to true PI length
+     eval(parse(text = paste0(   method_names[i], "_abs_diff_observed_true_length_Uniform <- colMeans( abs( (", method_names[i], "_PI_upper_Uniform - ", method_names[i], "_PI_lower_Uniform) - (true_PI_length_Uniform)  ) / true_PI_length_Uniform, dims = 1, na.rm = T)" ))) 
+     
+     
+    # Create empty arrays with predefined dims and dimnames for quantile coverage
+    eval(parse(text = paste0(   method_names[i], "_quantile_cov_Uniform <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)"))) 
+     
+ } # end of loop of methods
+  
+  # compute mean I2
+  mean_I2_Uniform <- colMeans(I2_Uniform, dims = 1, na.rm = T)
+
+
+  # Compute what percentage of the tau2 estimates is 0
+  REML_tau2_0_Uniform <- colMeans(tau2_REML_Uniform==0, dims = 1, na.rm = T)
+  DL_tau2_0_Uniform   <- colMeans(tau2_DL_Uniform ==0, dims = 1, na.rm = T)
+
+
+  # Compute how many of REML estimation failed to converge 
+  REML_tau2_NA_Uniform <- colSums(is.na(tau2_REML_Uniform), dims = 1)
+  
+  
+ # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_uniform
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      HTS_DL_quantile_cov_Uniform[, , ,i] <-  CDF_function(HTS_DL_PI_upper_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_PI_lower_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_REML_quantile_cov_Uniform[, , ,i] <-  CDF_function(HTS_REML_PI_upper_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_REML_PI_lower_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_HK_REML_quantile_cov_Uniform[, , ,i] <-  CDF_function(HTS_HK_REML_PI_upper_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_HK_REML_PI_lower_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_k_1_quantile_cov_Uniform[, , ,i] <-  CDF_function(HTS_DL_k_1_PI_upper_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_k_1_PI_lower_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_z_quantile_cov_Uniform[, , ,i] <-  CDF_function(HTS_DL_z_PI_upper_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_z_PI_lower_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      
+      
+      Wang_quantile_cov_Uniform[, , ,i] <-  CDF_function(Wang_PI_upper_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Wang_PI_lower_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      
+}
+
+  for (i in 1:length(method_names)) {  # loop over the methods again
+
+    # Compute mean of coverages
+    eval(parse(text = paste0(   method_names[i],  "_quantile_coverage_Uniform <- colMeans(" , method_names[i],"_quantile_cov_Uniform, dims = 1, na.rm = T)" )))
+  
+
+    # Compute median of coverages
+    eval(parse(text = paste0(   method_names[i],  "_median_quantile_coverage_Uniform <- apply(" , method_names[i],"_quantile_cov_Uniform, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)" )))
+    
+    # Compute mean difference from 95% coverage
+    eval(parse(text = paste0(   method_names[i], "_mean_diff_from_95_cov_Uniform  <- colMeans( abs(", method_names[i],"_quantile_cov_Uniform -",PI_level,"), dims = 1, na.rm = T)" )))
+    
+
+  }
+
+}
+
+
+
+```
+
+```{r load_Nag_Uniform_data, eval= Uniform_to_display == 1 & Nag_to_display == 1 }
+
+ # create results varlist for this distribution
+ 
+  varlist_Nag <- c("Nagashima_PI_lower","Nagashima_PI_upper", "Nagashima_true_PI_lower", "Nagashima_true_PI_upper", "Nagashima_teta_new" )
+
+  varlist_results_Nag_Uniform_list  <- paste0( varlist_Nag ,"_Uniform_list")  # lists to store runs
+  varlist_results_Nag_Uniform       <- paste0(varlist_Nag, "_Uniform")            # varnames for merged runs (merge with abind)
+
+
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Nag_Uniform_list)) {
+  assign(varlist_results_Nag_Uniform_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Nag_Uniform_run_to_display) {
+    load( file = paste0(basedir,"RE_distributions/", "Uniform", "/Res_list_Nag_", "Uniform", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Nag_Uniform_Run_" ,i), res_list_Nag)
+    rm(res_list_Nag)
+    
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Nag_Uniform_list)) {
+      eval(parse(text = paste0( varlist_results_Nag_Uniform_list[[j]],"[[i]]", "<- get(","'", "Res_list_Nag_Uniform_Run_",  i ,"'", ")[[ ","'", varlist_Nag[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Nag_Uniform)) {
+      eval(parse(text = paste0( varlist_results_Nag_Uniform[[a]]," <- abind(get(varlist_results_Nag_Uniform_list[[a]]), along=1)" ) ))
+  }
+  
+
+   # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(Nagashima_true_PI_lower_Uniform)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(Nagashima_true_PI_lower_Uniform)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2
+  ) 
+  
+# Compute summary statistics for this distribution from merged runs    
+
+   # Test if PI contains newly generated teta and compute average 
+   Nagashima_coverage_Uniform <- colMeans(Nagashima_PI_lower_Uniform < Nagashima_teta_new_Uniform & Nagashima_PI_upper_Uniform > Nagashima_teta_new_Uniform, dims = 1, na.rm = TRUE)
+   
+   
+    #Compute length of observed PI (not the mean but for each sim)
+     Nagashima_PI_length_Uniform <- Nagashima_PI_upper_Uniform - Nagashima_PI_lower_Uniform
+     
+     
+     #Compute ratio of observed and true length of PI 
+     Nagashima_PI_length_ratio_Uniform <- colMeans( (Nagashima_PI_upper_Uniform - Nagashima_PI_lower_Uniform) / (Nagashima_true_PI_upper_Uniform - Nagashima_true_PI_lower_Uniform), dims = 1, na.rm = T)
+    
+     
+    #Compute mean absolute difference of observed and true PI length relative to true PI length
+     Nagashima_abs_diff_observed_true_length_Uniform <- colMeans( abs( (Nagashima_PI_upper_Uniform -  Nagashima_PI_lower_Uniform) - (Nagashima_true_PI_upper_Uniform - Nagashima_true_PI_lower_Uniform)  ) / (Nagashima_true_PI_upper_Uniform - Nagashima_true_PI_lower_Uniform), dims = 1, na.rm = T) 
+     
+     
+   # Create empty arrays with predefined dims and dimnames for quantile coverage 
+   Nagashima_quantile_cov_Uniform <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)
+
+
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_uniform
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      Nagashima_quantile_cov_Uniform[, , ,i] <-  CDF_function(Nagashima_PI_upper_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Nagashima_PI_lower_Uniform[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+}
+
+  # Compute mean of coverages
+  Nagashima_quantile_coverage_Uniform <- colMeans(Nagashima_quantile_cov_Uniform, dims = 1, na.rm = T)
+  
+  # Compute median of coverages
+  Nagashima_median_quantile_coverage_Uniform <-  apply(Nagashima_quantile_cov_Uniform, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)
+  
+
+  # Compute mean absolute difference from 95% coverage
+  Nagashima_mean_diff_from_95_cov_Uniform<- colMeans( abs( Nagashima_quantile_cov_Uniform - PI_level), dims = 1, na.rm = T)
+  
+
+```
+
+
+
+```{r load_Skewed_Normal_50_data}
+
+# load, merge and compute results if this distribution results is set to 1
+if (Skewed_Normal_50_to_display ==1){
+  
+  # create results varlist for this distribution
+  varlist_results_Skewed_Normal_50_list  <- paste0(varlist_results_list ,"_Skewed_Normal_50_list")  # lists to store runs
+  varlist_results_Skewed_Normal_50       <- paste0(varlist_results_list, "_Skewed_Normal_50")       # varnames for merged runs (merge with abind)
+  n_sim_Skewed_Normal_50 <- matrix(0, nrow = 1, ncol = max(Skewed_Normal_50_run_to_display) )
+  
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Skewed_Normal_50_list)) {
+  assign(varlist_results_Skewed_Normal_50_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Skewed_Normal_50_run_to_display) {
+    load( file = paste0(basedir, "RE_distributions/", "Skewed_Normal_50", "/Res_list_Many_", "Skewed_Normal_50", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Many_Skewed_Normal_50_Run_" ,i), res_list)
+    n_sim_Skewed_Normal_50[1,i]<- dim(res_list[["teta_new"]])[1]
+    rm(res_list)
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Skewed_Normal_50_list)) {
+      eval(parse(text = paste0( varlist_results_Skewed_Normal_50_list[[j]],"[[i]]", "<- get(","'", "Res_list_Many_Skewed_Normal_50_Run_",  i ,"'", ")[[ ","'", varlist_results_list[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Skewed_Normal_50)) {
+      eval(parse(text = paste0( varlist_results_Skewed_Normal_50[[a]]," <- abind(get(varlist_results_Skewed_Normal_50_list[[a]]), along=1)" ) ))
+  }
+  
+  
+  # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(true_PI_lower_Skewed_Normal_50)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(true_PI_lower_Skewed_Normal_50)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2
+  ) 
+  
+
+# Compute summary statistics for this distribution from merged runs    
+   
+ for (i in 1:length(method_names)) {  # loop over the methods
+   
+     # Test if PI contains newly generated teta and compute average 
+     eval(parse(text = paste0(   method_names[i], "_coverage_Skewed_Normal_50 <- colMeans(", method_names[i],"_PI_lower_Skewed_Normal_50 < teta_new_Skewed_Normal_50 & ",  method_names[i],"_PI_upper_Skewed_Normal_50 > teta_new_Skewed_Normal_50, dims = 1, na.rm = TRUE)"  )))
+   
+     
+      #Compute length of observed PI (not the mean but for each sim)
+     eval(parse(text = paste0(   method_names[i], "_PI_length_Skewed_Normal_50 <- (", method_names[i], "_PI_upper_Skewed_Normal_50 - ", method_names[i], "_PI_lower_Skewed_Normal_50)" )))
+     
+     #Compute true PI length
+      eval(parse(text = paste0( "true_PI_length_Skewed_Normal_50 <- true_PI_upper_Skewed_Normal_50 - true_PI_lower_Skewed_Normal_50" )))
+     
+     
+     #Compute ratio of observed and true length of PI 
+     eval(parse(text = paste0(   method_names[i], "_PI_length_ratio_Skewed_Normal_50 <- colMeans( (", method_names[i], "_PI_upper_Skewed_Normal_50 - ", method_names[i], "_PI_lower_Skewed_Normal_50) / (true_PI_upper_Skewed_Normal_50 - true_PI_lower_Skewed_Normal_50)  )" ))) 
+     
+     
+    #Compute mean absolute difference of observed and true PI length relative to true PI length
+     eval(parse(text = paste0(   method_names[i], "_abs_diff_observed_true_length_Skewed_Normal_50 <- colMeans( abs( (", method_names[i], "_PI_upper_Skewed_Normal_50 - ", method_names[i], "_PI_lower_Skewed_Normal_50) - (true_PI_length_Skewed_Normal_50)  ) / true_PI_length_Skewed_Normal_50, dims = 1, na.rm = T)" ))) 
+     
+     
+    # Create empty arrays with predefined dims and dimnames for quantile coverage
+    eval(parse(text = paste0(   method_names[i], "_quantile_cov_Skewed_Normal_50 <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)"))) 
+     
+ } # end of loop of methods
+  
+  # compute mean I2
+  mean_I2_Skewed_Normal_50 <- colMeans(I2_Skewed_Normal_50, dims = 1, na.rm = T)
+
+
+  # Compute what percentage of the tau2 estimates is 0
+  REML_tau2_0_Skewed_Normal_50 <- colMeans(tau2_REML_Skewed_Normal_50==0, dims = 1, na.rm = T)
+  DL_tau2_0_Skewed_Normal_50   <- colMeans(tau2_DL_Skewed_Normal_50 ==0, dims = 1, na.rm = T)
+
+
+  # Compute how many of REML estimation failed to converge 
+  REML_tau2_NA_Skewed_Normal_50 <- colSums(is.na(tau2_REML_Skewed_Normal_50), dims = 1)
+  
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_skewed_normal_50
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      HTS_DL_quantile_cov_Skewed_Normal_50[, , ,i] <-  CDF_function(HTS_DL_PI_upper_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_PI_lower_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_REML_quantile_cov_Skewed_Normal_50[, , ,i] <-  CDF_function(HTS_REML_PI_upper_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_REML_PI_lower_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_HK_REML_quantile_cov_Skewed_Normal_50[, , ,i] <-  CDF_function(HTS_HK_REML_PI_upper_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_HK_REML_PI_lower_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_k_1_quantile_cov_Skewed_Normal_50[, , ,i] <-  CDF_function(HTS_DL_k_1_PI_upper_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_k_1_PI_lower_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_z_quantile_cov_Skewed_Normal_50[, , ,i] <-  CDF_function(HTS_DL_z_PI_upper_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_z_PI_lower_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+
+      
+      Wang_quantile_cov_Skewed_Normal_50[, , ,i] <-  CDF_function(Wang_PI_upper_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Wang_PI_lower_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+}
+
+  for (i in 1:length(method_names)) {  # loop over the methods again
+
+    # Compute mean of coverages
+    eval(parse(text = paste0(   method_names[i],  "_quantile_coverage_Skewed_Normal_50 <- colMeans(" , method_names[i],"_quantile_cov_Skewed_Normal_50, dims = 1, na.rm = T)" )))
+  
+    
+    # Compute median of coverages
+    eval(parse(text = paste0(   method_names[i],  "_median_quantile_coverage_Skewed_Normal_50 <- apply(" , method_names[i],"_quantile_cov_Skewed_Normal_50, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)" )))
+    
+    # Compute mean difference from 95% coverage
+    eval(parse(text = paste0(   method_names[i], "_mean_diff_from_95_cov_Skewed_Normal_50  <- colMeans( abs(", method_names[i],"_quantile_cov_Skewed_Normal_50 -",PI_level,"), dims = 1, na.rm = T)" )))
+    
+
+  }
+
+}
+
+
+
+```
+
+```{r load_Nag_Skewed_Normal_50_data, eval= Skewed_Normal_50_to_display == 1 & Nag_to_display == 1 }
+
+ # create results varlist for this distribution
+ 
+  varlist_Nag <- c("Nagashima_PI_lower","Nagashima_PI_upper", "Nagashima_true_PI_lower", "Nagashima_true_PI_upper", "Nagashima_teta_new" )
+
+  varlist_results_Nag_Skewed_Normal_50_list  <- paste0( varlist_Nag ,"_Skewed_Normal_50_list")  # lists to store runs
+  varlist_results_Nag_Skewed_Normal_50       <- paste0(varlist_Nag, "_Skewed_Normal_50")            # varnames for merged runs (merge with abind)
+
+
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Nag_Skewed_Normal_50_list)) {
+  assign(varlist_results_Nag_Skewed_Normal_50_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Nag_Skewed_Normal_50_run_to_display) {
+    load( file = paste0(basedir,"RE_distributions/", "Skewed_Normal_50", "/Res_list_Nag_", "Skewed_Normal_50", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Nag_Skewed_Normal_50_Run_" ,i), res_list_Nag)
+    rm(res_list_Nag)
+    
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Nag_Skewed_Normal_50_list)) {
+      eval(parse(text = paste0( varlist_results_Nag_Skewed_Normal_50_list[[j]],"[[i]]", "<- get(","'", "Res_list_Nag_Skewed_Normal_50_Run_",  i ,"'", ")[[ ","'", varlist_Nag[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Nag_Skewed_Normal_50)) {
+      eval(parse(text = paste0( varlist_results_Nag_Skewed_Normal_50[[a]]," <- abind(get(varlist_results_Nag_Skewed_Normal_50_list[[a]]), along=1)" ) ))
+  }
+  
+
+   # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(Nagashima_true_PI_lower_Skewed_Normal_50)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(Nagashima_true_PI_lower_Skewed_Normal_50)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2
+  ) 
+  
+# Compute summary statistics for this distribution from merged runs    
+
+   # Test if PI contains newly generated teta and compute average 
+   Nagashima_coverage_Skewed_Normal_50 <- colMeans(Nagashima_PI_lower_Skewed_Normal_50 < Nagashima_teta_new_Skewed_Normal_50 & Nagashima_PI_upper_Skewed_Normal_50 > Nagashima_teta_new_Skewed_Normal_50, dims = 1, na.rm = TRUE)
+   
+   
+    #Compute length of observed PI (not the mean but for each sim)
+     Nagashima_PI_length_Skewed_Normal_50 <- Nagashima_PI_upper_Skewed_Normal_50 - Nagashima_PI_lower_Skewed_Normal_50
+     
+     
+     #Compute ratio of observed and true length of PI 
+     Nagashima_PI_length_ratio_Skewed_Normal_50 <- colMeans( (Nagashima_PI_upper_Skewed_Normal_50 - Nagashima_PI_lower_Skewed_Normal_50) / (Nagashima_true_PI_upper_Skewed_Normal_50 - Nagashima_true_PI_lower_Skewed_Normal_50), dims = 1, na.rm = T)
+    
+     
+    #Compute mean absolute difference of observed and true PI length relative to true PI length
+     Nagashima_abs_diff_observed_true_length_Skewed_Normal_50 <- colMeans( abs( (Nagashima_PI_upper_Skewed_Normal_50 -  Nagashima_PI_lower_Skewed_Normal_50) - (Nagashima_true_PI_upper_Skewed_Normal_50 - Nagashima_true_PI_lower_Skewed_Normal_50)  ) / (Nagashima_true_PI_upper_Skewed_Normal_50 - Nagashima_true_PI_lower_Skewed_Normal_50), dims = 1, na.rm = T) 
+     
+     
+   # Create empty arrays with predefined dims and dimnames for quantile coverage 
+   Nagashima_quantile_cov_Skewed_Normal_50 <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)
+
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_skewed_normal_50
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      Nagashima_quantile_cov_Skewed_Normal_50[, , ,i] <-  CDF_function(Nagashima_PI_upper_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Nagashima_PI_lower_Skewed_Normal_50[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+}
+
+  # Compute mean of coverages
+  Nagashima_quantile_coverage_Skewed_Normal_50 <- colMeans(Nagashima_quantile_cov_Skewed_Normal_50, dims = 1, na.rm = T)
+  
+  # Compute median of coverages
+  Nagashima_median_quantile_coverage_Skewed_Normal_50 <-  apply(Nagashima_quantile_cov_Skewed_Normal_50, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)
+  
+
+  # Compute mean absolute difference from 95% coverage
+  Nagashima_mean_diff_from_95_cov_Skewed_Normal_50<- colMeans( abs( Nagashima_quantile_cov_Skewed_Normal_50 - PI_level), dims = 1, na.rm = T)
+  
+
+```
+
+
+
+```{r load_Skewed_Normal_75_data}
+
+# load, merge and compute results if this distribution results is set to 1
+if (Skewed_Normal_75_to_display ==1){
+  
+  # create results varlist for this distribution
+  varlist_results_Skewed_Normal_75_list  <- paste0(varlist_results_list ,"_Skewed_Normal_75_list")  # lists to store runs
+  varlist_results_Skewed_Normal_75       <- paste0(varlist_results_list, "_Skewed_Normal_75")       # varnames for merged runs (merge with abind)
+  n_sim_Skewed_Normal_75 <- matrix(0, nrow = 1, ncol = max(Skewed_Normal_75_run_to_display) )
+  
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Skewed_Normal_75_list)) {
+  assign(varlist_results_Skewed_Normal_75_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Skewed_Normal_75_run_to_display) {
+    load( file = paste0(basedir, "RE_distributions/", "Skewed_Normal_75", "/Res_list_Many_", "Skewed_Normal_75", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Many_Skewed_Normal_75_Run_" ,i), res_list)
+    n_sim_Skewed_Normal_75[1,i]<- dim(res_list[["teta_new"]])[1]
+    rm(res_list)
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Skewed_Normal_75_list)) {
+      eval(parse(text = paste0( varlist_results_Skewed_Normal_75_list[[j]],"[[i]]", "<- get(","'", "Res_list_Many_Skewed_Normal_75_Run_",  i ,"'", ")[[ ","'", varlist_results_list[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Skewed_Normal_75)) {
+      eval(parse(text = paste0( varlist_results_Skewed_Normal_75[[a]]," <- abind(get(varlist_results_Skewed_Normal_75_list[[a]]), along=1)" ) ))
+  }
+  
+  
+  # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(true_PI_lower_Skewed_Normal_75)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(true_PI_lower_Skewed_Normal_75)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2) 
+  
+
+# Compute summary statistics for this distribution from merged runs    
+   
+ for (i in 1:length(method_names)) {  # loop over the methods
+   
+     # Test if PI contains newly generated teta and compute average 
+     eval(parse(text = paste0(   method_names[i], "_coverage_Skewed_Normal_75 <- colMeans(", method_names[i],"_PI_lower_Skewed_Normal_75 < teta_new_Skewed_Normal_75 & ",  method_names[i],"_PI_upper_Skewed_Normal_75 > teta_new_Skewed_Normal_75, dims = 1, na.rm = TRUE)"  )))
+   
+
+     
+      #Compute length of observed PI (not the mean but for each sim)
+     eval(parse(text = paste0(   method_names[i], "_PI_length_Skewed_Normal_75 <- (", method_names[i], "_PI_upper_Skewed_Normal_75 - ", method_names[i], "_PI_lower_Skewed_Normal_75)" )))
+     
+     #Compute true PI length
+      eval(parse(text = paste0( "true_PI_length_Skewed_Normal_75 <- true_PI_upper_Skewed_Normal_75 - true_PI_lower_Skewed_Normal_75" )))
+     
+     
+     #Compute ratio of observed and true length of PI 
+     eval(parse(text = paste0(   method_names[i], "_PI_length_ratio_Skewed_Normal_75 <- colMeans( (", method_names[i], "_PI_upper_Skewed_Normal_75 - ", method_names[i], "_PI_lower_Skewed_Normal_75) / (true_PI_upper_Skewed_Normal_75 - true_PI_lower_Skewed_Normal_75)  )" ))) 
+     
+     
+    #Compute mean absolute difference of observed and true PI length relative to true PI length
+     eval(parse(text = paste0(   method_names[i], "_abs_diff_observed_true_length_Skewed_Normal_75 <- colMeans( abs( (", method_names[i], "_PI_upper_Skewed_Normal_75 - ", method_names[i], "_PI_lower_Skewed_Normal_75) - (true_PI_length_Skewed_Normal_75)  ) / true_PI_length_Skewed_Normal_75, dims = 1, na.rm = T)" ))) 
+     
+     
+    # Create empty arrays with predefined dims and dimnames for quantile coverage
+    eval(parse(text = paste0(   method_names[i], "_quantile_cov_Skewed_Normal_75 <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)"))) 
+     
+ } # end of loop of methods
+  
+  # compute mean I2
+  mean_I2_Skewed_Normal_75 <- colMeans(I2_Skewed_Normal_75, dims = 1, na.rm = T)
+
+
+  # Compute what percentage of the tau2 estimates is 0
+  REML_tau2_0_Skewed_Normal_75 <- colMeans(tau2_REML_Skewed_Normal_75==0, dims = 1, na.rm = T)
+  DL_tau2_0_Skewed_Normal_75   <- colMeans(tau2_DL_Skewed_Normal_75 ==0, dims = 1, na.rm = T)
+
+
+  # Compute how many of REML estimation failed to converge 
+  REML_tau2_NA_Skewed_Normal_75 <- colSums(is.na(tau2_REML_Skewed_Normal_75), dims = 1)
+  
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_skewed_normal_75
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      HTS_DL_quantile_cov_Skewed_Normal_75[, , ,i] <-  CDF_function(HTS_DL_PI_upper_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_PI_lower_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_REML_quantile_cov_Skewed_Normal_75[, , ,i] <-  CDF_function(HTS_REML_PI_upper_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_REML_PI_lower_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_HK_REML_quantile_cov_Skewed_Normal_75[, , ,i] <-  CDF_function(HTS_HK_REML_PI_upper_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_HK_REML_PI_lower_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_k_1_quantile_cov_Skewed_Normal_75[, , ,i] <-  CDF_function(HTS_DL_k_1_PI_upper_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_k_1_PI_lower_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_z_quantile_cov_Skewed_Normal_75[, , ,i] <-  CDF_function(HTS_DL_z_PI_upper_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_z_PI_lower_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      
+      
+      Wang_quantile_cov_Skewed_Normal_75[, , ,i] <-  CDF_function(Wang_PI_upper_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Wang_PI_lower_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+}
+
+  for (i in 1:length(method_names)) {  # loop over the methods again
+
+    # Compute mean of coverages
+    eval(parse(text = paste0(   method_names[i],  "_quantile_coverage_Skewed_Normal_75 <- colMeans(" , method_names[i],"_quantile_cov_Skewed_Normal_75, dims = 1, na.rm = T)" )))
+  
+    
+    # Compute median of coverages
+    eval(parse(text = paste0(   method_names[i],  "_median_quantile_coverage_Skewed_Normal_75 <- apply(" , method_names[i],"_quantile_cov_Skewed_Normal_75, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)" )))
+    
+    # Compute mean difference from 95% coverage
+    eval(parse(text = paste0(   method_names[i], "_mean_diff_from_95_cov_Skewed_Normal_75  <- colMeans( abs(", method_names[i],"_quantile_cov_Skewed_Normal_75 -",PI_level,"), dims = 1, na.rm = T)" )))
+    
+
+  }
+
+}
+
+
+
+```
+
+```{r load_Nag_Skewed_Normal_75_data, eval= Skewed_Normal_75_to_display == 1 & Nag_to_display == 1 }
+
+ # create results varlist for this distribution
+ 
+  varlist_Nag <- c("Nagashima_PI_lower","Nagashima_PI_upper", "Nagashima_true_PI_lower", "Nagashima_true_PI_upper", "Nagashima_teta_new" )
+
+  varlist_results_Nag_Skewed_Normal_75_list  <- paste0( varlist_Nag ,"_Skewed_Normal_75_list")  # lists to store runs
+  varlist_results_Nag_Skewed_Normal_75       <- paste0(varlist_Nag, "_Skewed_Normal_75")            # varnames for merged runs (merge with abind)
+
+
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Nag_Skewed_Normal_75_list)) {
+  assign(varlist_results_Nag_Skewed_Normal_75_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Nag_Skewed_Normal_75_run_to_display) {
+    load( file = paste0(basedir,"RE_distributions/", "Skewed_Normal_75", "/Res_list_Nag_", "Skewed_Normal_75", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Nag_Skewed_Normal_75_Run_" ,i), res_list_Nag)
+    rm(res_list_Nag)
+    
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Nag_Skewed_Normal_75_list)) {
+      eval(parse(text = paste0( varlist_results_Nag_Skewed_Normal_75_list[[j]],"[[i]]", "<- get(","'", "Res_list_Nag_Skewed_Normal_75_Run_",  i ,"'", ")[[ ","'", varlist_Nag[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Nag_Skewed_Normal_75)) {
+      eval(parse(text = paste0( varlist_results_Nag_Skewed_Normal_75[[a]]," <- abind(get(varlist_results_Nag_Skewed_Normal_75_list[[a]]), along=1)" ) ))
+  }
+  
+
+   # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(Nagashima_true_PI_lower_Skewed_Normal_75)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(Nagashima_true_PI_lower_Skewed_Normal_75)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2
+  ) 
+  
+# Compute summary statistics for this distribution from merged runs    
+
+   # Test if PI contains newly generated teta and compute average 
+   Nagashima_coverage_Skewed_Normal_75 <- colMeans(Nagashima_PI_lower_Skewed_Normal_75 < Nagashima_teta_new_Skewed_Normal_75 & Nagashima_PI_upper_Skewed_Normal_75 > Nagashima_teta_new_Skewed_Normal_75, dims = 1, na.rm = TRUE)
+   
+
+   
+    #Compute length of observed PI (not the mean but for each sim)
+     Nagashima_PI_length_Skewed_Normal_75 <- Nagashima_PI_upper_Skewed_Normal_75 - Nagashima_PI_lower_Skewed_Normal_75
+     
+     
+     #Compute ratio of observed and true length of PI 
+     Nagashima_PI_length_ratio_Skewed_Normal_75 <- colMeans( (Nagashima_PI_upper_Skewed_Normal_75 - Nagashima_PI_lower_Skewed_Normal_75) / (Nagashima_true_PI_upper_Skewed_Normal_75 - Nagashima_true_PI_lower_Skewed_Normal_75), dims = 1, na.rm = T)
+     
+   
+        #Compute mean absolute difference of observed and true PI length relative to true PI length
+     Nagashima_abs_diff_observed_true_length_Skewed_Normal_75 <- colMeans( abs( (Nagashima_PI_upper_Skewed_Normal_75 -  Nagashima_PI_lower_Skewed_Normal_75) - (Nagashima_true_PI_upper_Skewed_Normal_75 - Nagashima_true_PI_lower_Skewed_Normal_75)  ) / (Nagashima_true_PI_upper_Skewed_Normal_75 - Nagashima_true_PI_lower_Skewed_Normal_75), dims = 1, na.rm = T)  
+     
+     
+     
+   # Create empty arrays with predefined dims and dimnames for quantile coverage 
+   Nagashima_quantile_cov_Skewed_Normal_75 <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)
+
+  
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_skewed_normal_75
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      Nagashima_quantile_cov_Skewed_Normal_75[, , ,i] <-  CDF_function(Nagashima_PI_upper_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Nagashima_PI_lower_Skewed_Normal_75[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+}
+
+  # Compute mean of coverages
+  Nagashima_quantile_coverage_Skewed_Normal_75 <- colMeans(Nagashima_quantile_cov_Skewed_Normal_75, dims = 1, na.rm = T)
+  
+  # Compute median of coverages
+  Nagashima_median_quantile_coverage_Skewed_Normal_75 <-  apply(Nagashima_quantile_cov_Skewed_Normal_75, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)
+  
+
+  # Compute mean absolute difference from 95% coverage
+  Nagashima_mean_diff_from_95_cov_Skewed_Normal_75<- colMeans( abs( Nagashima_quantile_cov_Skewed_Normal_75 - PI_level), dims = 1, na.rm = T)
+  
+
+```
+
+
+
+```{r load_Skewed_Normal_99_data}
+
+# load, merge and compute results if this distribution results is set to 1
+if (Skewed_Normal_99_to_display ==1){
+  
+  # create results varlist for this distribution
+  varlist_results_Skewed_Normal_99_list  <- paste0(varlist_results_list ,"_Skewed_Normal_99_list")  # lists to store runs
+  varlist_results_Skewed_Normal_99       <- paste0(varlist_results_list, "_Skewed_Normal_99")       # varnames for merged runs (merge with abind)
+  n_sim_Skewed_Normal_99 <- matrix(0, nrow = 1, ncol = max(Skewed_Normal_99_run_to_display) )
+  
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Skewed_Normal_99_list)) {
+  assign(varlist_results_Skewed_Normal_99_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Skewed_Normal_99_run_to_display) {
+    load( file = paste0(basedir,"RE_distributions/", "Skewed_Normal_99", "/Res_list_Many_", "Skewed_Normal_99", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Many_Skewed_Normal_99_Run_" ,i), res_list)
+    n_sim_Skewed_Normal_99[1,i]<- dim(res_list[["teta_new"]])[1]
+    rm(res_list)
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Skewed_Normal_99_list)) {
+      eval(parse(text = paste0( varlist_results_Skewed_Normal_99_list[[j]],"[[i]]", "<- get(","'", "Res_list_Many_Skewed_Normal_99_Run_",  i ,"'", ")[[ ","'", varlist_results_list[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Skewed_Normal_99)) {
+      eval(parse(text = paste0( varlist_results_Skewed_Normal_99[[a]]," <- abind(get(varlist_results_Skewed_Normal_99_list[[a]]), along=1)" ) ))
+  }
+  
+  
+  # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(true_PI_lower_Skewed_Normal_99)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(true_PI_lower_Skewed_Normal_99)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2) 
+  
+
+# Compute summary statistics for this distribution from merged runs    
+   
+ for (i in 1:length(method_names)) {  # loop over the methods
+   
+     # Test if PI contains newly generated teta and compute average 
+     eval(parse(text = paste0(   method_names[i], "_coverage_Skewed_Normal_99 <- colMeans(", method_names[i],"_PI_lower_Skewed_Normal_99 < teta_new_Skewed_Normal_99 & ",  method_names[i],"_PI_upper_Skewed_Normal_99 > teta_new_Skewed_Normal_99, dims = 1, na.rm = TRUE)"  )))
+   
+     
+      #Compute length of observed PI (not the mean but for each sim)
+     eval(parse(text = paste0(   method_names[i], "_PI_length_Skewed_Normal_99 <- (", method_names[i], "_PI_upper_Skewed_Normal_99 - ", method_names[i], "_PI_lower_Skewed_Normal_99)" )))
+     
+     #Compute true PI length
+      eval(parse(text = paste0( "true_PI_length_Skewed_Normal_99 <- true_PI_upper_Skewed_Normal_99 - true_PI_lower_Skewed_Normal_99" )))
+     
+     
+     #Compute ratio of observed and true length of PI 
+     eval(parse(text = paste0(   method_names[i], "_PI_length_ratio_Skewed_Normal_99 <- colMeans( (", method_names[i], "_PI_upper_Skewed_Normal_99 - ", method_names[i], "_PI_lower_Skewed_Normal_99) / (true_PI_upper_Skewed_Normal_99 - true_PI_lower_Skewed_Normal_99)  )" ))) 
+     
+     
+    #Compute mean absolute difference of observed and true PI length relative to true PI length
+     eval(parse(text = paste0(   method_names[i], "_abs_diff_observed_true_length_Skewed_Normal_99 <- colMeans( abs( (", method_names[i], "_PI_upper_Skewed_Normal_99 - ", method_names[i], "_PI_lower_Skewed_Normal_99) - (true_PI_length_Skewed_Normal_99)  ) / true_PI_length_Skewed_Normal_99, dims = 1, na.rm = T)" ))) 
+     
+     
+     
+    # Create empty arrays with predefined dims and dimnames for quantile coverage
+    eval(parse(text = paste0(   method_names[i], "_quantile_cov_Skewed_Normal_99 <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)"))) 
+     
+ } # end of loop of methods
+  
+  # compute mean I2
+  mean_I2_Skewed_Normal_99 <- colMeans(I2_Skewed_Normal_99, dims = 1, na.rm = T)
+
+
+  # Compute what percentage of the tau2 estimates is 0
+  REML_tau2_0_Skewed_Normal_99 <- colMeans(tau2_REML_Skewed_Normal_99==0, dims = 1, na.rm = T)
+  DL_tau2_0_Skewed_Normal_99   <- colMeans(tau2_DL_Skewed_Normal_99 ==0, dims = 1, na.rm = T)
+
+
+  # Compute how many of REML estimation failed to converge 
+  REML_tau2_NA_Skewed_Normal_99 <- colSums(is.na(tau2_REML_Skewed_Normal_99), dims = 1)
+  
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_skewed_normal_99
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      HTS_DL_quantile_cov_Skewed_Normal_99[, , ,i] <-  CDF_function(HTS_DL_PI_upper_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_PI_lower_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_REML_quantile_cov_Skewed_Normal_99[, , ,i] <-  CDF_function(HTS_REML_PI_upper_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_REML_PI_lower_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_HK_REML_quantile_cov_Skewed_Normal_99[, , ,i] <-  CDF_function(HTS_HK_REML_PI_upper_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_HK_REML_PI_lower_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_k_1_quantile_cov_Skewed_Normal_99[, , ,i] <-  CDF_function(HTS_DL_k_1_PI_upper_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_k_1_PI_lower_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_z_quantile_cov_Skewed_Normal_99[, , ,i] <-  CDF_function(HTS_DL_z_PI_upper_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_z_PI_lower_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      
+      
+      Wang_quantile_cov_Skewed_Normal_99[, , ,i] <-  CDF_function(Wang_PI_upper_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Wang_PI_lower_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      
+}
+
+  for (i in 1:length(method_names)) {  # loop over the methods again
+
+    # Compute mean of coverages
+    eval(parse(text = paste0(   method_names[i],  "_quantile_coverage_Skewed_Normal_99 <- colMeans(" , method_names[i],"_quantile_cov_Skewed_Normal_99, dims = 1, na.rm = T)" )))
+  
+    
+    # Compute median of coverages
+    eval(parse(text = paste0(   method_names[i],  "_median_quantile_coverage_Skewed_Normal_99 <- apply(" , method_names[i],"_quantile_cov_Skewed_Normal_99, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)" )))
+    
+    # Compute mean difference from 95% coverage
+    eval(parse(text = paste0(   method_names[i], "_mean_diff_from_95_cov_Skewed_Normal_99  <- colMeans( abs(", method_names[i],"_quantile_cov_Skewed_Normal_99 -",PI_level,"), dims = 1, na.rm = T)" )))
+    
+
+  }
+
+}
+
+
+
+```
+
+```{r load_Nag_Skewed_Normal_99_data, eval= Skewed_Normal_99_to_display == 1 & Nag_to_display == 1 }
+
+ # create results varlist for this distribution
+ 
+  varlist_Nag <- c("Nagashima_PI_lower","Nagashima_PI_upper", "Nagashima_true_PI_lower", "Nagashima_true_PI_upper", "Nagashima_teta_new" )
+
+  varlist_results_Nag_Skewed_Normal_99_list  <- paste0( varlist_Nag ,"_Skewed_Normal_99_list")  # lists to store runs
+  varlist_results_Nag_Skewed_Normal_99       <- paste0(varlist_Nag, "_Skewed_Normal_99")            # varnames for merged runs (merge with abind)
+
+
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Nag_Skewed_Normal_99_list)) {
+  assign(varlist_results_Nag_Skewed_Normal_99_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Nag_Skewed_Normal_99_run_to_display) {
+    load( file = paste0(basedir,"RE_distributions/", "Skewed_Normal_99", "/Res_list_Nag_", "Skewed_Normal_99", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Nag_Skewed_Normal_99_Run_" ,i), res_list_Nag)
+    rm(res_list_Nag)
+    
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Nag_Skewed_Normal_99_list)) {
+      eval(parse(text = paste0( varlist_results_Nag_Skewed_Normal_99_list[[j]],"[[i]]", "<- get(","'", "Res_list_Nag_Skewed_Normal_99_Run_",  i ,"'", ")[[ ","'", varlist_Nag[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Nag_Skewed_Normal_99)) {
+      eval(parse(text = paste0( varlist_results_Nag_Skewed_Normal_99[[a]]," <- abind(get(varlist_results_Nag_Skewed_Normal_99_list[[a]]), along=1)" ) ))
+  }
+  
+
+   # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(Nagashima_true_PI_lower_Skewed_Normal_99)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(Nagashima_true_PI_lower_Skewed_Normal_99)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2
+  ) 
+  
+# Compute summary statistics for this distribution from merged runs    
+
+   # Test if PI contains newly generated teta and compute average 
+   Nagashima_coverage_Skewed_Normal_99 <- colMeans(Nagashima_PI_lower_Skewed_Normal_99 < Nagashima_teta_new_Skewed_Normal_99 & Nagashima_PI_upper_Skewed_Normal_99 > Nagashima_teta_new_Skewed_Normal_99, dims = 1, na.rm = TRUE)
+   
+
+    #Compute length of observed PI (not the mean but for each sim)
+     Nagashima_PI_length_Skewed_Normal_99 <- Nagashima_PI_upper_Skewed_Normal_99 - Nagashima_PI_lower_Skewed_Normal_99
+     
+     
+     #Compute ratio of observed and true length of PI 
+     Nagashima_PI_length_ratio_Skewed_Normal_99 <- colMeans( (Nagashima_PI_upper_Skewed_Normal_99 - Nagashima_PI_lower_Skewed_Normal_99) / (Nagashima_true_PI_upper_Skewed_Normal_99 - Nagashima_true_PI_lower_Skewed_Normal_99), dims = 1, na.rm = T)
+     
+   
+         #Compute mean absolute difference of observed and true PI length relative to true PI length
+     Nagashima_abs_diff_observed_true_length_Skewed_Normal_99 <- colMeans( abs( (Nagashima_PI_upper_Skewed_Normal_99 -  Nagashima_PI_lower_Skewed_Normal_99) - (Nagashima_true_PI_upper_Skewed_Normal_99 - Nagashima_true_PI_lower_Skewed_Normal_99)  ) / (Nagashima_true_PI_upper_Skewed_Normal_99 - Nagashima_true_PI_lower_Skewed_Normal_99), dims = 1, na.rm = T) 
+     
+     
+     
+   # Create empty arrays with predefined dims and dimnames for quantile coverage 
+   Nagashima_quantile_cov_Skewed_Normal_99 <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)
+
+  
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_skewed_normal_99
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      Nagashima_quantile_cov_Skewed_Normal_99[, , ,i] <-  CDF_function(Nagashima_PI_upper_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Nagashima_PI_lower_Skewed_Normal_99[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+}
+
+  # Compute mean of coverages
+  Nagashima_quantile_coverage_Skewed_Normal_99 <- colMeans(Nagashima_quantile_cov_Skewed_Normal_99, dims = 1, na.rm = T)
+  
+  # Compute median of coverages
+  Nagashima_median_quantile_coverage_Skewed_Normal_99 <-  apply(Nagashima_quantile_cov_Skewed_Normal_99, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)
+  
+
+  # Compute mean absolute difference from 95% coverage
+  Nagashima_mean_diff_from_95_cov_Skewed_Normal_99<- colMeans( abs( Nagashima_quantile_cov_Skewed_Normal_99 - PI_level), dims = 1, na.rm = T)
+  
+
+```
+
+
+
+```{r load_Bimodal_data}
+
+# load, merge and compute results if this distribution results is set to 1
+if (Bimodal_to_display ==1){
+  
+  # create results varlist for this distribution
+  varlist_results_Bimodal_list  <- paste0(varlist_results_list ,"_Bimodal_list")  # lists to store runs
+  varlist_results_Bimodal       <- paste0(varlist_results_list, "_Bimodal")       # varnames for merged runs (merge with abind)
+  n_sim_bimodal <- matrix(0, nrow = 1, ncol = max(Bimodal_run_to_display) )
+  
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Bimodal_list)) {
+  assign(varlist_results_Bimodal_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Bimodal_run_to_display) {
+    load( file = paste0(basedir,"RE_distributions/", "Bimodal", "/Res_list_Many_", "Bimodal", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Many_Bimodal_Run_" ,i), res_list)
+    n_sim_bimodal[1,i]<- dim(res_list[["teta_new"]])[1]
+    rm(res_list)
+    
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Bimodal_list)) {
+      eval(parse(text = paste0( varlist_results_Bimodal_list[[j]],"[[i]]", "<- get(","'", "Res_list_Many_Bimodal_Run_",  i ,"'", ")[[ ","'", varlist_results_list[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Bimodal)) {
+      eval(parse(text = paste0( varlist_results_Bimodal[[a]]," <- abind(get(varlist_results_Bimodal_list[[a]]), along=1)" ) ))
+  }
+  
+  
+  # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(true_PI_lower_Bimodal)[1] ,length(k) ,length(n_pattern), length(t2))
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(true_PI_lower_Bimodal)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2) 
+  
+
+# Compute summary statistics for this distribution from merged runs    
+   
+ for (i in 1:length(method_names)) {  # loop over the methods
+   
+     # Test if PI contains newly generated teta and compute average 
+     eval(parse(text = paste0(   method_names[i], "_coverage_Bimodal <- colMeans(", method_names[i],"_PI_lower_Bimodal < teta_new_Bimodal & ",  method_names[i],"_PI_upper_Bimodal > teta_new_Bimodal, dims = 1, na.rm = TRUE)"  )))
+   
+
+     
+      #Compute length of observed PI (not the mean but for each sim)
+     eval(parse(text = paste0(   method_names[i], "_PI_length_Bimodal <- (", method_names[i], "_PI_upper_Bimodal - ", method_names[i], "_PI_lower_Bimodal)" )))
+     
+     #Compute true PI length
+      eval(parse(text = paste0( "true_PI_length_Bimodal <- true_PI_upper_Bimodal - true_PI_lower_Bimodal" )))
+     
+     
+     #Compute ratio of observed and true length of PI 
+     eval(parse(text = paste0(   method_names[i], "_PI_length_ratio_Bimodal <- colMeans( (", method_names[i], "_PI_upper_Bimodal - ", method_names[i], "_PI_lower_Bimodal) / (true_PI_upper_Bimodal - true_PI_lower_Bimodal)  )" ))) 
+     
+     
+      #Compute mean absolute difference of observed and true PI length relative to true PI length
+     eval(parse(text = paste0(   method_names[i], "_abs_diff_observed_true_length_Bimodal <- colMeans( abs( (", method_names[i], "_PI_upper_Bimodal - ", method_names[i], "_PI_lower_Bimodal) - (true_PI_length_Bimodal)  ) / true_PI_length_Bimodal, dims = 1, na.rm = T)" ))) 
+     
+     
+     
+    # Create empty arrays with predefined dims and dimnames for quantile coverage
+    eval(parse(text = paste0(   method_names[i], "_quantile_cov_Bimodal <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)"))) 
+     
+ } # end of loop of methods
+  
+  # compute mean I2
+  mean_I2_Bimodal <- colMeans(I2_Bimodal, dims = 1, na.rm = T)
+
+
+  # Compute what percentage of the tau2 estimates is 0
+  REML_tau2_0_Bimodal <- colMeans(tau2_REML_Bimodal==0, dims = 1, na.rm = T)
+  DL_tau2_0_Bimodal   <- colMeans(tau2_DL_Bimodal ==0, dims = 1, na.rm = T)
+
+
+  # Compute how many of REML estimation failed to converge 
+  REML_tau2_NA_Bimodal <- colSums(is.na(tau2_REML_Bimodal), dims = 1)
+  
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_bimodal
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      HTS_DL_quantile_cov_Bimodal[, , ,i] <-  CDF_function(HTS_DL_PI_upper_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_PI_lower_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_REML_quantile_cov_Bimodal[, , ,i] <-  CDF_function(HTS_REML_PI_upper_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_REML_PI_lower_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_HK_REML_quantile_cov_Bimodal[, , ,i] <-  CDF_function(HTS_HK_REML_PI_upper_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_HK_REML_PI_lower_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_k_1_quantile_cov_Bimodal[, , ,i] <-  CDF_function(HTS_DL_k_1_PI_upper_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_k_1_PI_lower_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      HTS_DL_z_quantile_cov_Bimodal[, , ,i] <-  CDF_function(HTS_DL_z_PI_upper_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(HTS_DL_z_PI_lower_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      
+      
+      Wang_quantile_cov_Bimodal[, , ,i] <-  CDF_function(Wang_PI_upper_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Wang_PI_lower_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+      
+}
+
+  for (i in 1:length(method_names)) {  # loop over the methods again
+
+    # Compute mean of coverages
+    eval(parse(text = paste0(   method_names[i],  "_quantile_coverage_Bimodal <- colMeans(" , method_names[i],"_quantile_cov_Bimodal, dims = 1, na.rm = T)" )))
+  
+    
+    # Compute median of coverages
+    eval(parse(text = paste0(   method_names[i],  "_median_quantile_coverage_Bimodal <- apply(" , method_names[i],"_quantile_cov_Bimodal, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)" )))
+    
+    # Compute mean difference from 95% coverage
+    eval(parse(text = paste0(   method_names[i], "_mean_diff_from_95_cov_Bimodal  <- colMeans( abs(", method_names[i],"_quantile_cov_Bimodal -",PI_level,"), dims = 1, na.rm = T)" )))
+    
+
+  }
+
+}
+
+
+
+```
+
+```{r load_Nag_Bimodal_data, eval= Bimodal_to_display == 1 & Nag_to_display == 1 }
+
+ # create results varlist for this distribution
+ 
+  varlist_Nag <- c("Nagashima_PI_lower","Nagashima_PI_upper", "Nagashima_true_PI_lower", "Nagashima_true_PI_upper", "Nagashima_teta_new" )
+
+  varlist_results_Nag_Bimodal_list  <- paste0( varlist_Nag ,"_Bimodal_list")  # lists to store runs
+  varlist_results_Nag_Bimodal       <- paste0(varlist_Nag, "_Bimodal")            # varnames for merged runs (merge with abind)
+
+
+  # assign empty list for each variable 
+  for (i in 1:length(varlist_results_Nag_Bimodal_list)) {
+  assign(varlist_results_Nag_Bimodal_list[i], list())
+  }
+
+  # load results file for this distribution and runs that are set, rename them from res_list and delete res_list in each loop 
+  for (i in Nag_Bimodal_run_to_display) {
+    load( file = paste0(basedir,"RE_distributions/", "Bimodal", "/Res_list_Nag_", "Bimodal", "_Run_", i, ".RData") )
+    assign(paste0("Res_list_Nag_Bimodal_Run_" ,i), res_list_Nag)
+    rm(res_list_Nag)
+    
+    
+    # put each run array in the corresponding list 
+    for (j in 1:length(varlist_results_Nag_Bimodal_list)) {
+      eval(parse(text = paste0( varlist_results_Nag_Bimodal_list[[j]],"[[i]]", "<- get(","'", "Res_list_Nag_Bimodal_Run_",  i ,"'", ")[[ ","'", varlist_Nag[j], "'","]]"  ) ) )
+    }
+    
+  }
+    
+  # merge each list containing the results array runs along the first dim: number of simulations
+  for (a in 1:length(varlist_results_Nag_Bimodal)) {
+      eval(parse(text = paste0( varlist_results_Nag_Bimodal[[a]]," <- abind(get(varlist_results_Nag_Bimodal_list[[a]]), along=1)" ) ))
+  }
+  
+
+   # dimensions of array for quantile coverage results
+  dim_results_quantile <- c(dim(Nagashima_true_PI_lower_Bimodal)[1] ,length(k) ,length(n_pattern), length(t2) )
+
+  # dimnames of array for quantile coverage results
+  dimnames_results_quantile <- list(
+  "sim_number"=1:dim(Nagashima_true_PI_lower_Bimodal)[1], 
+  "all_study"=k, 
+  "n_pattern"=n_pattern, 
+  "tau2" = t2
+  ) 
+  
+# Compute summary statistics for this distribution from merged runs    
+
+   # Test if PI contains newly generated teta and compute average 
+   Nagashima_coverage_Bimodal <- colMeans(Nagashima_PI_lower_Bimodal < Nagashima_teta_new_Bimodal & Nagashima_PI_upper_Bimodal > Nagashima_teta_new_Bimodal, dims = 1, na.rm = TRUE)
+   
+   
+    #Compute length of observed PI (not the mean but for each sim)
+     Nagashima_PI_length_Bimodal <- Nagashima_PI_upper_Bimodal - Nagashima_PI_lower_Bimodal
+     
+     
+     #Compute ratio of observed and true length of PI 
+     Nagashima_PI_length_ratio_Bimodal <- colMeans( (Nagashima_PI_upper_Bimodal - Nagashima_PI_lower_Bimodal) / (Nagashima_true_PI_upper_Bimodal - Nagashima_true_PI_lower_Bimodal), dims = 1, na.rm = T)
+     
+   
+         #Compute mean absolute difference of observed and true PI length relative to true PI length
+     Nagashima_abs_diff_observed_true_length_Bimodal <- colMeans( abs( (Nagashima_PI_upper_Bimodal -  Nagashima_PI_lower_Bimodal) - (Nagashima_true_PI_upper_Bimodal - Nagashima_true_PI_lower_Bimodal)  ) / (Nagashima_true_PI_upper_Bimodal - Nagashima_true_PI_lower_Bimodal), dims = 1, na.rm = T) 
+     
+     
+   # Create empty arrays with predefined dims and dimnames for quantile coverage 
+   Nagashima_quantile_cov_Bimodal <- array(dim=dim_results_quantile, dimnames = dimnames_results_quantile)
+
+  
+  
+  # Compute coverage probability based on distribution quantiles
+  
+  CDF_function <- CDF_bimodal
+  
+     # Compute  (upper-lower) probability for each t2
+    for (i in 1:length(t2)) {
+      
+      Nagashima_quantile_cov_Bimodal[, , ,i] <-  CDF_function(Nagashima_PI_upper_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) ) - CDF_function(Nagashima_PI_lower_Bimodal[, , ,i], mean = mu, sd=sqrt(t2[i]) )
+      
+}
+
+  # Compute mean of coverages
+  Nagashima_quantile_coverage_Bimodal <- colMeans(Nagashima_quantile_cov_Bimodal, dims = 1, na.rm = T)
+  
+  # Compute median of coverages
+  Nagashima_median_quantile_coverage_Bimodal <-  apply(Nagashima_quantile_cov_Bimodal, MARGIN=c(2:4), median, na.rm =T, simplify = TRUE)
+  
+
+  # Compute mean absolute difference from 95% coverage
+  Nagashima_mean_diff_from_95_cov_Bimodal<- colMeans( abs( Nagashima_quantile_cov_Bimodal - PI_level), dims = 1, na.rm = T)
+  
+
+```
+
+
+<!---  Define plot functions that will be used in the display section--->
+```{r plot_functions}
+
+# define mean coverage plot as loop over selected methods to display
+
+cov_quant_plot <- function(n, tau2, distribution,
+                     ylim=c(PI_level-0.15, 1),
+                     type="o", 
+                     gap=c(31,98))  {
+
+  
+  gap.plot( y = get(paste0(to_display_method_names[1],"_quantile_coverage_", distribution ) )[,n, tau2],
+          x= k,
+          gap.axis = "x",
+          gap=gap,
+          main = paste0( #"n=",n_pattern[n],",  tau2=", t2[tau2]," SE2=", round(mean_se2[1, n],2), "\n",
+            "Heterogeneity measures: ",
+                        "v=",  round(t2[tau2]/mean_se2[1, n],2), #" I2=", round(t2[tau2]/(t2[tau2]+ mean_se2[1, n]),2),
+ ", mean I2 = ",paste0(round(get(paste0("mean_I2_",distribution)) [length(k), n, tau2],0), "%") ),
+          cex.main=0.9,
+          xlab = "Number of studies",
+          ylab = "Mean coverage probability",
+          xtics = k,
+          ylim = ylim,
+          yticlab=NA,
+          ytics = F ,
+          type="n")
+  
+  
+  
+for (i in 1:length(to_display_method_names)) {
+  
+  gap.plot(
+          y = get(paste0(to_display_method_names[i],"_quantile_coverage_", distribution ) )[,n, tau2],
+          x= k,
+          add=TRUE,
+          gap.axis = "x",
+          gap=gap,
+          pch=pch_to_display[i],
+          type=type,
+          yaxt = "n",
+          col = colours_to_display[i])
+  
+  }  
+  
+  ablineclip(h=PI_level,col = "forestgreen")
+  axis.break(1, breakpos = gap[1], breakcol="gray", style="gap")
+  axis.break(1, breakpos = gap[1], breakcol="black", style="slash")
+
+  axis(2,
+     at = seq(ylim[1], ylim[2],by = 0.05),
+     tck = 1, lty = 2, col = "gray")
+  
+  legend("topleft", to_display_legend_names, pch=pch_to_display, col=colours_to_display,
+       inset=c(1,0), xpd=TRUE, bty="n", title="PI estimators"
+       )
+  
+}
+
+
+# define median coverage plot as loop over selected methods to display
+
+median_cov_plot <- function(n, tau2, distribution,
+                     ylim=c(PI_level-0.15, 1),
+                     type="o", 
+                     gap=c(31,98))  {
+
+  
+  gap.plot( y = get(paste0(to_display_method_names[1],"_median_quantile_coverage_", distribution ) )[,n, tau2],
+          x= k,
+          gap.axis = "x",
+          gap=gap,
+          main = paste0( #"n=",n_pattern[n],",  tau2=", t2[tau2]," SE2=", round(mean_se2[1, n],2), "\n",
+            "Heterogeneity measures: ",
+                        "v=",  round(t2[tau2]/mean_se2[1, n],2), #" I2=", round(t2[tau2]/(t2[tau2]+ mean_se2[1, n]),2),
+ ", mean I2 = ",paste0(round(get(paste0("mean_I2_",distribution)) [length(k), n, tau2],0), "%") ),
+          cex.main=0.9,
+          xlab = "Number of studies",
+          ylab = "Median coverage probability",
+          xtics = k,
+          ylim = ylim,
+          yticlab=NA,
+          ytics = F ,
+          type="n")
+  
+  
+  
+for (i in 1:length(to_display_method_names)) {
+  
+  gap.plot(
+          y = get(paste0(to_display_method_names[i],"_median_quantile_coverage_", distribution ) )[,n, tau2],
+          x= k,
+          add=TRUE,
+          gap.axis = "x",
+          gap=gap,
+          pch=pch_to_display[i],
+          type=type,
+          yaxt = "n",
+          col = colours_to_display[i])
+  
+  }  
+  
+  ablineclip(h=PI_level,col = "forestgreen")
+  axis.break(1, breakpos = gap[1], breakcol="gray", style="gap")
+  axis.break(1, breakpos = gap[1], breakcol="black", style="slash")
+
+  axis(2,
+     at = seq(ylim[1], ylim[2],by = 0.05),
+     tck = 1, lty = 2, col = "gray")
+  
+  legend("topleft", to_display_legend_names, pch=pch_to_display, col=colours_to_display,
+       inset=c(1,0), xpd=TRUE, bty="n", title="PI estimators"
+       )
+  
+}
+
+
+# define mean absolute difference from 95% coverage plot as loop over selected methods
+mean_diff_from_95_coverage_plot <- function(n, tau2, distribution,
+                     ylim=c(0, 0.3),
+                     type="o", 
+                     gap=c(31,98))  {
+
+  
+  gap.plot( y = get(paste0(to_display_method_names[1],"_mean_diff_from_95_cov_", distribution ) )[,n, tau2],
+          x= k,
+          gap.axis = "x",
+          gap=gap,
+          main = paste0( #"n=",n_pattern[n],",  tau2=", t2[tau2]," SE2=", round(mean_se2[1, n],2), "\n",
+            "Heterogeneity measures: ",
+                        "v=",  round(t2[tau2]/mean_se2[1, n],2), #" I2=", round(t2[tau2]/(t2[tau2]+ mean_se2[1, n]),2),
+ ", mean I2 = ",paste0(round(get(paste0("mean_I2_",distribution)) [length(k), n, tau2],0), "%") ),
+          cex.main=0.9,
+          xlab = "Number of studies",
+          ylab = "Mean absolute difference from 0.95 coverage",
+          xtics = k,
+          ylim = ylim,
+          yticlab=NA,
+          ytics = F ,
+          type="n")
+  
+  
+  
+for (i in 1:length(to_display_method_names)) {
+  
+  gap.plot(
+          y = get(paste0(to_display_method_names[i],"_mean_diff_from_95_cov_", distribution ) )[,n, tau2],
+          x= k,
+          add=TRUE,
+          gap.axis = "x",
+          gap=gap,
+          pch=pch_to_display[i],
+          type=type,
+          yaxt = "n",
+          col = colours_to_display[i])
+  
+  }  
+  
+  ablineclip(h=0, col = "forestgreen")
+  #ablineclip(h=0.90,col = my_colours[8])
+  axis.break(1, breakpos = gap[1], breakcol="gray", style="gap")
+  axis.break(1, breakpos = gap[1], breakcol="black", style="slash")
+
+  axis(2,
+     at = seq(ylim[1], ylim[2],by = 0.1),
+     tck = 1, lty = 2, col = "gray")
+  
+  legend("topleft", to_display_legend_names, pch=pch_to_display, col=colours_to_display,
+       inset=c(1,0), xpd=TRUE, bty="n", title="PI estimators"
+       )
+
+  
+}
+
+
+
+# Histogram of coverage probabilities
+
+histogram_of_coverages <- function(study_no, n, tau2, distribution, method)  {
+ 
+  hist(
+      get(paste0(method,"_quantile_cov_", distribution ) )[ ,study_no ,n, tau2], 
+      
+      main = paste0("\n","\n","\n","\n","\n","\n", 
+       "Mean=", round(mean(get(paste0(method,"_quantile_cov_", distribution ) )[ ,study_no ,n, tau2], na.rm=T), 2), 
+                        ", Median=", round(median(get(paste0(method,"_quantile_cov_", distribution ) )[ ,study_no ,n, tau2], na.rm=T), 2)), 
+     breaks=seq(0, 1, 0.01),
+     xlim = c(0, 1),
+     ylim = c(0, 100),
+     probability = T, 
+     ylab="Percentage",
+     xlab="Coverage probability",
+     cex.lab=1.3,
+     cex.axis=1.3
+ )
+
+abline(v=PI_level, col="green")
+legend(x = "top",  legend = paste0( "k = ", k[study_no]), bty = "n" , cex=1.5, inset=c(0,0.2), xpd=TRUE )
+}
+
+
+
+
+#define mean observed length / true length plot
+Observed_per_true_length_plot <- function(n, tau2, distribution,
+                     ylim=c(1, 4 ),
+                     type="o", 
+                     gap=c(31,98))  {
+
+  
+  gap.plot( y = get(paste0(to_display_method_names[1],"_PI_length_ratio_",distribution) )[,n, tau2],
+          x= k,
+          gap.axis = "x",
+          gap=gap,
+          main = paste0( #"n=",n_pattern[n],",  tau2=", t2[tau2]," SE2=", round(mean_se2[1, n],2), "\n",
+            "Heterogeneity measures: ",
+                        "v=",  round(t2[tau2]/mean_se2[1, n],2), #" I2=", round(t2[tau2]/(t2[tau2]+ mean_se2[1, n]),2),
+ ", mean I2 = ",paste0(round(get(paste0("mean_I2_",distribution)) [length(k), n, tau2],0), "%") ),
+          cex.main=0.9,
+          xlab = "Number of studies",
+          ylab = "Mean observed length / true length",
+          xtics = k,
+          ylim = ylim,
+          yticlab=NA,
+          ytics = F ,
+          type="n")
+  
+  
+  
+for (i in 1:length(to_display_method_names)) {
+  
+  gap.plot(
+          y = get(paste0(to_display_method_names[i],"_PI_length_ratio_",distribution ) )[,n, tau2],
+          x= k,
+          add=TRUE,
+          gap.axis = "x",
+          gap=gap,
+          pch=pch_to_display[i],
+          type=type,
+          yaxt = "n",
+          col = colours_to_display[i])
+  
+  }  
+  
+  ablineclip(h=1, col = "forestgreen")
+  #ablineclip(h=0.90,col = my_colours[8])
+  axis.break(1, breakpos = gap[1], breakcol="gray", style="gap")
+  axis.break(1, breakpos = gap[1], breakcol="black", style="slash")
+
+  axis(2,
+     at = seq(1, 4, 0.5),
+     tck = 1, lty = 2, col = "gray")
+  
+  legend("topleft", to_display_legend_names, pch=pch_to_display, col=colours_to_display,
+       inset=c(1,0), xpd=TRUE, bty="n", title="PI estimators"
+       )
+}
+
+
+
+
+
+#define  mean (abs(observed-true length) / true length ) plot
+
+mean_abs_observed_minus_true_length_relative_to_true_length_plot <- function(n, tau2, distribution,
+                     ylim=c(0, 3),
+                     type="o", 
+                     gap=c(31,98))  {
+
+  
+  gap.plot( y = get(paste0(to_display_method_names[1],"_abs_diff_observed_true_length_",distribution) )[,n, tau2],
+          x= k,
+          gap.axis = "x",
+          gap=gap,
+          main = paste0( #"n=",n_pattern[n],",  tau2=", t2[tau2]," SE2=", round(mean_se2[1, n],2), "\n",
+            "Heterogeneity measures: ",
+                        "v=",  round(t2[tau2]/mean_se2[1, n],2), #" I2=", round(t2[tau2]/(t2[tau2]+ mean_se2[1, n]),2),
+ ", mean I2 = ",paste0(round(get(paste0("mean_I2_",distribution)) [length(k), n, tau2],0), "%") ),
+          cex.main=0.9,
+          xlab = "Number of studies",
+          ylab = "Normalized mean absolute error",
+          xtics = k,
+          ylim = ylim,
+          yticlab=NA,
+          ytics = F ,
+          type="n")
+  
+  
+  
+for (i in 1:length(to_display_method_names)) {
+  
+  gap.plot(
+          y = get(paste0(to_display_method_names[i],"_abs_diff_observed_true_length_",distribution ) )[,n, tau2],
+          x= k,
+          add=TRUE,
+          gap.axis = "x",
+          gap=gap,
+          pch=pch_to_display[i],
+          type=type,
+          yaxt = "n",
+          col = colours_to_display[i])
+  
+  }  
+  
+  ablineclip(h=0, col = "forestgreen")
+  #ablineclip(h=0.90,col = my_colours[8])
+  axis.break(1, breakpos = gap[1], breakcol="gray", style="gap")
+  axis.break(1, breakpos = gap[1], breakcol="black", style="slash")
+
+  axis(2,
+     at = seq(0, 3, 0.5),
+     tck = 1, lty = 2, col = "gray")
+  
+  legend("topleft", to_display_legend_names, pch=pch_to_display, col=colours_to_display,
+       inset=c(1,0), xpd=TRUE, bty="n", title="PI estimators"
+       )
+}
+
+
+
+```
+
+
+
+# **Density function of the investigated random effects distributions** {.tabset .tabset-pills}
+
+```{r dists, results='asis', fig.dim = c(9, 5) }
+
+# Set parameters of the distributions to draw
+Mean <- 0
+Tau2 <- 1
+
+# x axis for drawing
+x_axis <- seq(from= Mean - 3 * sqrt(Tau2),
+              to= Mean + 3 * sqrt(Tau2),
+              by= 0.01)
+
+for (z in 1:length(all_distributions)) {
+  
+  if (all_distributions[z] == "Normal") {
+    re_density <- function(x, mean, sd) dnorm(x=x, mean = mean, sd=sd)
+    
+  } else if (all_distributions[z] == "Uniform") {
+    re_density <- function(x, mean, sd) dunif(x=x, min = mean - sqrt(3*sd^2), max = mean + sqrt(3*sd^2))
+    
+  } else if (all_distributions[z] == "Skewed_Normal_50") {
+    re_density <- function(x, mean, sd)  dsn(x=x, dp =cp2dp( c(mean, sd, 0.5 ), "SN") ) 
+    
+  } else if (all_distributions[z] == "Skewed_Normal_75") {
+    re_density <- function(x, mean, sd)  dsn(x=x, dp =cp2dp( c(mean, sd, 0.75 ), "SN") ) 
+    
+  } else if (all_distributions[z] == "Skewed_Normal_99") {
+    re_density <- function(x, mean, sd)  dsn(x=x, dp =cp2dp( c(mean, sd, 0.99 ), "SN") ) 
+    
+  } else if (all_distributions[z] == "Bimodal") {
+    re_density <- function(x, mean, sd) dnormMix(   x=x, 
+                                                    p.mix = 0.5,                # mixture of 2 normals with equal weights
+                                                    mean1 =  mean - 0.8 * sd ,    # 0.8 is arbitrary
+                                                    mean2 =  mean + 0.8 * sd ,    # expected value will be mu
+                                                    sd1 = sqrt( (sd^2) / 5),    # define sd1^2 as tau2/5 
+                                                    sd2 = sqrt(  (sd^2 -  0.5 * ((sd^2) / 5) - 0.5 * ( ( (mean - 0.8 * sd) -mean)^2 ) - 0.5*( ((mean + 0.8 * sd)-mean)^2 ))/0.5  )  ) # sd2 is bound to be this to have var as predefined tau2
+  }
+  
+# Define quantile function to draw vertical line on plots
+  if (all_distributions[z] == "Normal") {
+  re_quantile <- function(p, mean, sd) qnorm(p, mean = mean, sd=sd)
+  
+} else if (all_distributions[z] == "Uniform") {
+  re_quantile <- function(p, mean, sd) qunif(p, min = mean - sqrt(3*sd^2), max = mean + sqrt(3*sd^2))
+  
+} else if ( all_distributions[z] == "Skewed_Normal_50") {
+  re_quantile <- function(p, mean, sd)  qsn(p, dp =cp2dp( c(mean, sd, 0.5 ), "SN") ) 
+  
+} else if ( all_distributions[z] == "Skewed_Normal_75") {
+  re_quantile <- function(p, mean, sd)  qsn(p, dp =cp2dp( c(mean, sd, 0.75 ), "SN") ) 
+  
+} else if ( all_distributions[z] == "Skewed_Normal_99") {
+  re_quantile <- function(p, mean, sd)  qsn(p, dp =cp2dp( c(mean, sd, 0.99 ), "SN") ) 
+
+}  else if (all_distributions[z] == "Bimodal") { 
+  re_quantile <- function(p, mean, sd) qnormMix(p, 
+                                                p.mix = 0.5,                # mixture of 2 normals with equal weights
+                                                mean1 =  mean - 0.8 * sd ,    # 0.8 is arbitrary
+                                                mean2 =  mean + 0.8 * sd ,    # expected value will be mu
+                                                sd1 = sqrt( (sd^2) / 5),    # define sd1^2 as tau2/5 
+                                                sd2 = sqrt(  (sd^2 -  0.5 * ((sd^2) / 5) - 0.5 * ( ( (mean - 0.8 * sd) -mean)^2 ) - 0.5*( ((mean + 0.8 * sd)-mean)^2 ))/0.5  )  ) # sd2 is bound to be this to have var as predefined tau2
+}
+  
+  
+  # calculate density points based on x axis, predefined parameters and distribution
+  y_axis <- re_density(x = x_axis, 
+                  mean = Mean,
+                  sd = sqrt(Tau2))
+  
+  cat(paste0("\n## **RE distributions = ",  all_distributions_displayed_name[z] , "** {.tabset .tabset-pills}  \n") )
+  
+  cat("  \n")
+  
+  plot(x = x_axis,
+       y = y_axis,
+       type = "l",
+       main = expression(paste(mu," = 0, ", tau^2,  " = 1")),
+       ylim=c(0, 0.6),
+       ylab = "Probability density", 
+       xlab = "", 
+       xaxt="n")
+  abline(v=re_quantile((1-PI_level)/2, Mean, sqrt(Tau2)),  col="lightgreen")
+  abline(v=re_quantile(1-( (1-PI_level)/2 ), Mean, sqrt(Tau2)),  col="lightgreen")
+  
+  axis(1, at =c(round(re_quantile((1-PI_level)/2, Mean, sqrt(Tau2)),2), -1, 0, 1, round(re_quantile(1-( (1-PI_level)/2 ), Mean, sqrt(Tau2)),2) ) )
+  
+  legend("topleft", "True PI boundaries defined as 2.5% and 97.5% percentiles \n of the true effects distribution", lty=1, col="lightgreen",
+       inset=c(0,1.05), xpd=TRUE, bty="n", title=""
+       )
+  
+  cat("  \n")
+}
+  
+```
+
+
+
+# **Histogram of coverage probabilities** {.tabset .tabset-pills}
+
+```{r histograms, results='asis' , eval=Hist_to_display}
+ 
+par(mfrow=c(1,3),
+    mar = c(5.1, 4.1, 6.5, 2.1) )
+
+
+
+for (z in 1:length(n_pattern_ciklus)) {
+  
+  cat(paste0("\n## **Sample sizes = ",  n_pattern_ciklus[z] , "** {.tabset .tabset-pills}  \n") )
+  
+  cat("  \n")
+  
+  for (u in 1:length(t2)) {
+    
+    cat(paste0("\n### **tau2 = ",  t2[u] , "** {.tabset .tabset-pills}  \n") )
+    
+    cat("  \n")
+    
+    for (f in 1:length(to_display_method_names)) {
+        
+        cat(paste0("\n#### **Method = ",  to_display_legend_names[f] , "** {.tabset .tabset-pills}  \n") )
+    
+        cat("  \n")
+    
+    
+      for (d in 1:length(distributions)) {
+        
+        cat(paste0("\n##### **RE distribution = ",  distribution_displayed_name[d] , "** {.tabset .tabset-pills}  \n") )
+    
+        cat("  \n")
+    
+          
+    # par(mfrow=c(1,1)) 
+    #     
+    # plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=c(0,1), ylim=c(0,1) )
+    # legend("bottomleft", "0.95 coverage probability",  lty=1, col="lightgreen",
+    #    #inset=c(0,1.05), xpd=TRUE, 
+    #    bty="n", title=""
+    #    )
+    #     
+    # par(mfrow=c(1,3))
+    
+    
+    histogram_of_coverages(1, z, u,  distributions[d], to_display_method_names[f] )
+    
+    legend("topleft", "0.95 coverage probability",  lty=1, col="lightgreen",
+            inset=c(-0.2,-0.4), xpd=TRUE, 
+            bty="n", title="", cex = 1.4
+    )
+    
+
+    histogram_of_coverages(2, z, u,  distributions[d], to_display_method_names[f] )
+
+    histogram_of_coverages(3, z, u,  distributions[d], to_display_method_names[f] )
+    
+    legend("topleft",
+           paste0("Het. measures: v=",  round(t2[u]/mean_se2[1, z],2), ", mean I2 = ",paste0(round(get(paste0("mean_I2_",distributions[d])) [length(k), z, u],0), "%") ),
+            lty=NULL, inset=c(-0.3,-0.4), xpd=TRUE, 
+            bty="n", title="", cex = 1.4)      
+
+    histogram_of_coverages(4, z, u,  distributions[d], to_display_method_names[f] )
+    
+    histogram_of_coverages(5, z, u,  distributions[d], to_display_method_names[f] )
+    
+    histogram_of_coverages(6, z, u,  distributions[d], to_display_method_names[f] )
+    
+    histogram_of_coverages(7, z, u,  distributions[d], to_display_method_names[f] )
+
+    histogram_of_coverages(8, z, u,  distributions[d], to_display_method_names[f] )
+
+    histogram_of_coverages(9, z, u,  distributions[d], to_display_method_names[f] )
+     
+
+    
+    cat("  \n")
+  }
+  
+  cat("  \n")
+}
+
+cat("  \n")
+
+}    
+    
+  cat("  \n")
+}
+    
+
+```
+
+
+
+# **Mean coverage probability** {.tabset .tabset-pills}
+
+```{r mean, results='asis' , fig.dim = c(9, 5.5), eval=Other_plots_to_display }
+
+ par(mfrow=c(1,1))
+
+for (z in 1:length(n_pattern_ciklus)) {
+  
+  cat(paste0("\n## **Sample sizes = ",  n_pattern_ciklus[z] , "** {.tabset .tabset-pills}  \n") )
+  
+  cat("  \n")
+  
+  for (u in 1:length(t2)) {
+    
+    cat(paste0("\n### **tau2 = ",  t2[u] , "** {.tabset .tabset-pills}  \n") )
+    
+    cat("  \n")
+    
+      for (d in 1:length(distributions)) {
+        
+        cat(paste0("\n#### **RE distribution = ",  distribution_displayed_name[d] , "** {.tabset .tabset-pills}  \n") )
+    
+        cat("  \n")
+      
+    par(mar=c(5.1, 4.1, 4.1, 10))
+    cov_quant_plot(z, u, distributions[d])
+
+    cat("  \n")
+  }
+  
+  cat("  \n")
+}
+
+  cat("  \n")
+}
+```
+
+
+
+# **Median coverage probability** {.tabset .tabset-pills}
+
+```{r median, results='asis' , fig.dim = c(9, 5.5), eval=Other_plots_to_display }
+
+  par(mfrow=c(1,1))
+
+for (z in 1:length(n_pattern_ciklus)) {
+  
+  cat(paste0("\n## **Sample sizes = ",  n_pattern_ciklus[z] , "** {.tabset .tabset-pills}  \n") )
+  
+  cat("  \n")
+  
+  for (u in 1:length(t2)) {
+    
+    cat(paste0("\n### **tau2 = ",  t2[u] , "** {.tabset .tabset-pills}  \n") )
+    
+    cat("  \n")
+    
+      for (d in 1:length(distributions)) {
+        
+        cat(paste0("\n#### **RE distribution = ",  distribution_displayed_name[d] , "** {.tabset .tabset-pills}  \n") )
+    
+        cat("  \n")
+      
+
+    par(mar=c(5.1, 4.1, 4.1, 10))
+    median_cov_plot(z, u,  distributions[d])
+
+    
+    cat("  \n")
+  }
+  
+  cat("  \n")
+}
+
+  cat("  \n")
+}
+```
+
+
+
+# **Mean absolute difference from 0.95 coverage** {.tabset .tabset-pills}
+
+```{r mad, results='asis',fig.dim = c(9, 5.5), eval=Other_plots_to_display  }
+
+    par(mfrow=c(1,1))
+
+for (z in 1:length(n_pattern_ciklus)) {
+  
+  cat(paste0("\n## **Sample sizes = ",  n_pattern_ciklus[z] , "** {.tabset .tabset-pills}  \n") )
+  
+  cat("  \n")
+  
+  for (u in 1:length(t2)) {
+    
+    cat(paste0("\n### **tau2 = ",  t2[u] , "** {.tabset .tabset-pills}  \n") )
+    
+    cat("  \n")
+    
+      for (d in 1:length(distributions)) {
+        
+        cat(paste0("\n#### **RE distribution = ",  distribution_displayed_name[d] , "** {.tabset .tabset-pills}  \n") )
+    
+        cat("  \n")
+      
+    par(mar=c(5.1, 4.1, 4.1, 10))
+    mean_diff_from_95_coverage_plot(z, u,  distributions[d])
+
+    
+    cat("  \n")
+  }
+  
+  cat("  \n")
+}
+
+  cat("  \n")
+}
+```
+
+
+
+# **Mean observed length relative to true length** {.tabset .tabset-pills}
+
+```{r length1, results='asis',fig.dim = c(9, 5.5), eval=Other_plots_to_display  }
+
+
+par(mfrow=c(1,1))
+
+for (z in 1:length(n_pattern_ciklus)) {
+  
+  cat(paste0("\n## **Sample sizes = ",  n_pattern_ciklus[z] , "** {.tabset .tabset-pills}  \n") )
+  
+  cat("  \n")
+  
+  for (u in 1:length(t2)) {
+    
+    cat(paste0("\n### **tau2 = ",  t2[u] , "** {.tabset .tabset-pills}  \n") )
+    
+    cat("  \n")
+    
+      for (d in 1:length(distributions)) {
+        
+        cat(paste0("\n#### **RE distribution = ",  distribution_displayed_name[d] , "** {.tabset .tabset-pills}  \n") )
+    
+        cat("  \n")
+      
+    par(mar=c(5.1, 4.1, 4.1, 10))
+    Observed_per_true_length_plot(z, u, distributions[d])
+
+    
+    cat("  \n")
+  }
+  
+  cat("  \n")
+}
+
+  cat("  \n")
+}
+```
+
+
+
+# **Normalized mean absolute error** {.tabset .tabset-pills}
+
+```{r length2, results='asis',fig.dim = c(9, 5.5), eval=Other_plots_to_display  }
+
+
+par(mfrow=c(1,1))
+
+for (z in 1:length(n_pattern_ciklus)) {
+  
+  cat(paste0("\n## **Sample sizes = ",  n_pattern_ciklus[z] , "** {.tabset .tabset-pills}  \n") )
+  
+  cat("  \n")
+  
+  for (u in 1:length(t2)) {
+    
+    cat(paste0("\n### **tau2 = ",  t2[u] , "** {.tabset .tabset-pills}  \n") )
+    
+    cat("  \n")
+    
+      for (d in 1:length(distributions)) {
+        
+        cat(paste0("\n#### **RE distribution = ",  distribution_displayed_name[d] , "** {.tabset .tabset-pills}  \n") )
+    
+        cat("  \n")
+      
+    par(mar=c(5.1, 4.1, 4.1, 10))
+    mean_abs_observed_minus_true_length_relative_to_true_length_plot(z, u, distributions[d])
+
+    
+    cat("  \n")
+  }
+  
+  cat("  \n")
+}
+
+  cat("  \n")
+}
+```
+
+
+
+
+
+
+
