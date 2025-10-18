@@ -16,7 +16,7 @@ You can replicate our simulation with your own settings. You can freely modify t
 
 ## How to run the codes
 
-1. First you need to determine a base directory on your own computer and download the 4 files to this directory from this Github repository. 
+1. First you need to determine a base directory on your own computer and download the 4 files to this directory from this Github repository (Base_parameters.R, Sim_Cont_Many.R, Sim_Cont_Results.Rmd, PI_Sim_Matrai.Rproj) . 
 
 
 ### nagyon sub
