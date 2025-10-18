@@ -1,6 +1,13 @@
-# Title
+# This a Readme file to the R codes available to the article 'Assessing the properties of the prediction interval in random-effects meta-analysis' published by Research Synthesis Methods  
 
-## subtitle
+## Content of the Github repository
+- Base_parameters.R
+- Sim_Cont_Many.R
+- Sim_Cont_Results.Rmd
+- PI_Sim_Matrai.Rproj
+
+## How to run the codes
+
 
 **valami**
 
