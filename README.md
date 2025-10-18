@@ -37,14 +37,10 @@ You can replicate our simulation with your own settings. You can freely modify t
 
 4. Generating input data
     * If you want to generate your own input data, open the **Sim_Cont_Many.R** file in the R Studio. If you downloaded our input data and want to display the results computed from those, you can skip this step and proceed to step 5.
-    * In the **Base_parameters.R** file you can set from which distribution you want to generate input meta-analyses. You can set it between lines 28 and 33.  
-      Define the distribution by giving the appropriate value to the variable named **distribution**, and **comment out all the other lines**.
-      Also, in line 44, you can define the number of meta-analysis to simulate in one Run by giving a value to the variable named **r**. The default is r <- 1000, but it may take hours to generate depending on your system. You can set **r** to a lower value to reduce          the running time.  
+    * In the **Base_parameters.R** file you can set from which distribution you want to generate input meta-analyses. You can set it between lines 28 and 33.  Define the distribution by giving the appropriate value to the variable named **distribution**, and **comment         out all the other lines**.
+    * Also, in line 44, you can define the number of meta-analysis to simulate in one Run, by giving a value to the variable named **r**. The default is r <- 1000, but it may take hours to generate them depending on your system. You can set **r** to a lower value to           reduce the running time.  
 
-### nagyon sub
-dgzdfgfdgf  
-fdgdgdfgdfgdf  
-dfgdfgdfgdfgdfgdf
+
 
 
 
