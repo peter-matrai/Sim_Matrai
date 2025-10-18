@@ -11,6 +11,7 @@
 - Sim_Cont_Many.R
 - Sim_Cont_Results.Rmd
 - PI_Sim_Matrai.Rproj
+- README.md
 
 ## For what purpose you can use these codes
 You can replicate our simulation with your own settings. You can freely modify the parameters, test other true effects distributions, test other PI methods or modify the ones we used. You can easily modify the code to define new performance measures and display the results. The details of our simulation are described in the article in section 4. 
