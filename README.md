@@ -36,7 +36,7 @@ You can replicate our simulation with your own settings. You can freely modify t
 3. Open the **PI_Sim_Matrai.Rproj** R project file in your R studio. Open the **Base_parameters.R** file in the program. At the top of this file, from line 11, you can see the **R packages needed** to run the codes. Make sure that these packages are installed.
 
 4. Generating input data
-    * If you want to generate your own input data, open the **Sim_Cont_Many.R** file in the R Studio. If you downloaded our input data and want to display the results computed from those, you can skip this step and proceed to the next one.
+    * If you want to generate your own input data, open the **Sim_Cont_Many.R** file in the R Studio. If you downloaded our input data and want to display the results computed from those, you can skip this step and proceed to step 5.
     * In the **Base_parameters.R** file you can set from which distribution you want to generate input meta-analyses. You can set it between lines 28 and 33.  
       Define the distribution by giving the appropriate value to the variable named **distribution**, and **comment out all the other lines**. 
 
