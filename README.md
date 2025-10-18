@@ -19,7 +19,7 @@ You can replicate our simulation with your own settings. You can freely modify t
 
 1. First you need to determine a **base directory** on your own computer and **download the 4 files** to this directory from this Github repository (Base_parameters.R, Sim_Cont_Many.R, Sim_Cont_Results.Rmd, PI_Sim_Matrai.Rproj)  
 2. You need to have a very specific folder system in your base directory, which you can create one of the two following ways:   
-    * If you would like to generate 'input data' (simulated meta-analyses with the predifined settings) and compute the PI limits of the tested methods, first you need to create the following folder system in your base directory, **manually**:
+    * If you would like to generate 'input data' (simulated meta-analyses with the predifined settings), compute the PI limits of the tested methods, and visualize the results, first you need to create the following folder system in your base directory, **manually**:
       - create a folder named **RE_distributions** with 6 empty folders in it with the following names:
         - **Normal**  
         - **Uniform**  
@@ -28,8 +28,8 @@ You can replicate our simulation with your own settings. You can freely modify t
         - **Skewed_Normal_75**  
         - **Skewed_Normal_99**  
 
-    * Alternatively, you can download all of the input files that we generated and used in our simulation through the following link: [Our input files](https://mega.nz/folder/d7o0VI6I#IDIanHGoP21XiwcZEPaYhg)
-      Download it as a zipped folder and then unzip it in your base directory, so that you have the same folder system in the base directory as descibed above. The whole content is 13.6 GB.
+    * Alternatively, **you can download all of the input files that we generated** and used in our simulation through the following link: [Our input files](https://mega.nz/folder/d7o0VI6I#IDIanHGoP21XiwcZEPaYhg).
+      Download it as a zipped folder and then put the unzipped folder in your base directory, so that you have the same folder system in the base directory as descibed above. The whole content is 13.6 GB.
       You do not need to download the whole content, you can download any part of these and place them in the appropriate location in your base directory.    
 
 ### nagyon sub
