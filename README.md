@@ -33,7 +33,9 @@ You can replicate our simulation with your own settings. You can freely modify t
       Download it as a zipped folder and then put the unzipped folder in your base directory, so that you have the same folder system in the base directory as descibed above. The whole content is 13.6 GB.
       You do not need to download the whole content, you can download any part of these and place them in the appropriate location in your base directory.    
 
-3. Open the **PI_Sim_Matrai.Rproj** R project file in your R studio. Open the **Base_parameters.R** file in the program. At the top of this file, from line 11, you can see the **R packages needed** to run the codes. Make sure that these packages are installed.  
+3. Open the **PI_Sim_Matrai.Rproj** R project file in your R studio. Open the **Base_parameters.R** file in the program. At the top of this file, from line 11, you can see the **R packages needed** to run the codes. Make sure that these packages are installed.
+
+4. If you want to generate your own input data, open the **Sim_Cont_Many.R** file in the R Studio. If you downloaded our input data and want to display the results computed from those, you can skip this step and proceed to the next one.  
 
 ### nagyon sub
 dgzdfgfdgf  
