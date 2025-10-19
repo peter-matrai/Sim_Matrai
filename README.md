@@ -1,5 +1,5 @@
-# This a Readme file to the R codes available to the article 'Assessing the properties of the prediction interval in random-effects meta-analysis' published by Research Synthesis Methods  
-
+# This is a Readme file to the R codes available to the article 'Assessing the properties of the prediction interval in random-effects meta-analysis' published in Research Synthesis Methods  
+  
 - Code written by: Péter Mátrai, Zoltán Sipos  
 - Code maintainer: Péter Mátrai (peter.matrai@pte.hu)  
 - The R version the code was written in: version 4.1.3.
