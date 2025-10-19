@@ -1,4 +1,5 @@
 # This a Readme file to the R codes available to the article 'Assessing the properties of the prediction interval in random-effects meta-analysis' published by Research Synthesis Methods  
+
 - Code written by: Péter Mátrai, Zoltán Sipos  
 - Code maintainer: Péter Mátrai (peter.matrai@pte.hu)  
 - The R version the code was written in: version 4.1.3.
@@ -6,19 +7,24 @@
 - We recommend using R studio to run the codes
 - Last modified: 20/10/2025
 
+
 ## Content of the Github repository
+
 - Base_parameters.R
 - Sim_Cont_Many.R
 - Sim_Cont_Results.Rmd
 - PI_Sim_Matrai.Rproj
 - README.md
 
+
 ## For what purpose you can use these codes
 You can replicate our simulation with your own settings. You can freely modify the parameters, test other true effects distributions, test other PI methods or modify the ones we used. You can easily modify the code to define new performance measures and display the results. The details of our simulation methods are described in the article in section 4. 
+
 
 ## How to run the codes
 
 1. First you need to determine a **base directory** on your own computer and **download the 4 files** to this directory from this Github repository (Base_parameters.R, Sim_Cont_Many.R, Sim_Cont_Results.Rmd, PI_Sim_Matrai.Rproj)
+
 
 2. You need to have a very specific folder system in your base directory, which you can create one of the two following ways:   
     * If you would like to generate 'input data' (simulated meta-analyses with predifined settings), compute the PI limits of the tested methods, and visualize the results, first you need to create the following folder system in your base directory, **manually**:
@@ -34,7 +40,9 @@ You can replicate our simulation with your own settings. You can freely modify t
       Download it as a zipped folder and then put the unzipped folder in your base directory, so that you have the same folder system in the base directory as descibed above. The whole content is 13.6 GB.
       You do not need to download the whole content, you can download any part of these and place them in the appropriate location in your base directory.    
 
+
 3. Open the **PI_Sim_Matrai.Rproj** R project file in your R studio. Open the **Base_parameters.R** file in the program. At the top of this file, from line 11, you can see the **R packages needed** to run the codes. Make sure that these packages are installed.
+
 
 4. Generating input data
     * If you want to generate your own input data, open the **Sim_Cont_Many.R** file in the R Studio. If you downloaded some or all our input data and you want to display the results computed only from those, you can skip this step and proceed to step 5.
@@ -49,6 +57,7 @@ You can replicate our simulation with your own settings. You can freely modify t
       - The second part of the **Sim_Cont_Many.R** file computes the lower and upper PI boundaries using the investigated PI methods. This part of the code also computes some additional properties, e.g. the theoretical PI limits, the I square value, etc. These are also stored in arrays and put in a list. This list is also saved as an R.Data file, which has the general name: **Res_list_Many_distribution_Run_run.RData**. For example, if you set the skewed normal distribution with skewness parameter 75 (Skewed_Normal_75) with 1 Run, the name of the file will be **Res_list_Many_Skewed_Normal_75_Run_1.RData** and the program will place it in the folder called Skewed_Normal_75.  
 
     * If you have created the necessary folder system, and you have set everything in the **Base_parameters.R** file and the **Sim_Cont_Many.R** file, just run the whole code in the **Sim_Cont_Many.R** file. The 2 output file will be generated and placed in the appropriate folder. 
+
 
 5. Creating a HTML file to display the results
    
