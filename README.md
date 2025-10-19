@@ -68,7 +68,7 @@ You can replicate our simulation with your own settings. You can freely modify t
     * For example, if you want to show results for the normal distribution of 2 runs, you need to following setting:
       - `Normal_to_display <- 1`
       - `Normal_run_to_display <- 1:2`  
-      You also need to have **Res_list_Many_Normal_Run_1.RData** and **Res_list_Many_Normal_Run_2.RData** files in your folder for the Normal distrtion.
+      You also need to have the **Res_list_Many_Normal_Run_1.RData** and **Res_list_Many_Normal_Run_2.RData** files in your folder for the Normal distribution.
     * Between lines 110-116, you can choose which methods you want to display. Set '1' to display the given method and set '0' otherwise.
     * In line 125 you can set whether you want to display the parametric bootstrap method. If you do, you need to download the Res_list file(s) and place them in the appropriate distribution folder, as it is explained in the previous section.
     * You do not need to modify the settings between lines 129-139.
