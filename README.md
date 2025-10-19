@@ -77,4 +77,5 @@ You can replicate our simulation with your own settings. You can freely modify t
     * In line 149, you can specify whether you want to display the 5 performance plots. Set TRUE of FALSE. If you set TRUE, you need to have at least the **Gen_list_Normal_Run_1.RData** file in your 'Normal' folder, because the program computes the true mean standard errors from this file.
     * If you set many things to display, the creation of the html file may take long hours. You can reduce the running time by setting fewer things to display. 
     * If you have set everything you wanted, simply knit the document.
+    * The html file containing all of our simulation results is available as an [Online Supplementary Material](https://mega.nz/file/UqIT1QwL#XUhSyea-oApoFYpPjqZGudkfu0kV9xCdJ0xhsKadYP0) for the article. (Reference number 35 in the article).
 
