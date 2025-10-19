@@ -36,7 +36,7 @@ You can replicate our simulation with your own settings. You can freely modify t
         - **Skewed_Normal_75**  
         - **Skewed_Normal_99**  
 
-    * Alternatively, **you can download all of the input files that we generated** and used in our simulation through the following link: [Our input files](https://mega.nz/folder/d7o0VI6I#IDIanHGoP21XiwcZEPaYhg).
+    * Alternatively, **you can download some or all of the input files that we generated** and used in our simulation through the following link: [Our input files](https://mega.nz/folder/d7o0VI6I#IDIanHGoP21XiwcZEPaYhg).
       Download it as a zipped folder and then put the unzipped folder in your base directory, so that you have the same folder system in the base directory as descibed above. The whole content is 13.6 GB.
       You do not need to download the whole content, you can download any part of these and place them in the appropriate location in your base directory.    
 
