@@ -60,6 +60,6 @@ You can replicate our simulation with your own settings. You can freely modify t
 
 
 5. Creating a HTML file to display the results
-   
-
+    * Open the **Sim_Cont_Results.Rmd**, knitting this file will create a html file showing the results, based on your settings.  
+    * You can set the name of the html in line 11 by replacing **Sim_PI** with any other name in the code: `paste0("Sim_PI", ".html")))`.
 
