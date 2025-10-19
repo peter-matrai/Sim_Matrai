@@ -64,16 +64,16 @@ You can replicate our simulation with your own settings. You can freely modify t
     * You can set the name of the html in line 11 by replacing **Sim_PI** with any other name in the code: `paste0("Sim_PI", ".html")))`.
     * All the other necessary settings are in the **chunk named 'base_settings'**, between lines 51-155 .
     * You do not need to modify the basedir setting, it will be automatically the folder where your PI_Sim_Matrai.Rproj R project file is located.
-    * Between lines 87-103 you can set for which distributions you want to display results and which runs you want to use. You need to have the appropriate Res_list RData file(s) in the appropriate distribution folder(s), otherwise you will get an error. Set '1' if you want to show the given distribution and set '0' if you do not want. Also, set the Runs in the format 1:k, if you want to process Run_1, Run_2, ...Run_k. 
+    * Between lines 87-103 you can set for which distributions you want to display results and which Runs you want to use. You need to have the appropriate Res_list RData file(s) in the appropriate distribution folder(s), otherwise you will get an error. Set '1' if you want to show the given distribution and set '0' if you do not want. Also, set the Runs in the format 1:k, if you want to process Run_1, Run_2, ...Run_k. 
     * For example, if you want to show results for the normal distribution of 2 runs, you need to following setting:
       - `Normal_to_display <- 1`
       - `Normal_run_to_display <- 1:2`  
       You also need to have the **Res_list_Many_Normal_Run_1.RData** and **Res_list_Many_Normal_Run_2.RData** files in your folder for the Normal distribution.
     * Between lines 110-116, you can choose which methods you want to display. Set '1' to display the given method and set '0' otherwise.
-    * In line 125 you can set whether you want to display the parametric bootstrap method. If you do, you need to download the Res_list file(s) and place them in the appropriate distribution folder, as it is explained in the previous section.
+    * In line 125 you can set whether you want to display the parametric bootstrap method. If you do, you need to download the Res_list file(s) for this method and place them in the appropriate distribution folder, as it is explained in the previous section.
     * You do not need to modify the settings between lines 129-139.
-    * In line 145, you can specify whether you want to display the histogram of coverage probabilities. Set TRUE of FALSE.
+    * In line 145, you can specify whether you want to display the histograms of the coverage probabilities. Set TRUE of FALSE.
     * In line 149, you can specify whether you want to display the 5 performance plots. Set TRUE of FALSE. If you set TRUE, you need to have at least the **Gen_list_Normal_Run_1.RData** file in your 'Normal' folder, because the program computes the true mean standard errors from this file, and it will be shown on these plots. 
-    * If you set many things to display, the creation of the html file may take long hours.
+    * If you set many things to display, the creation of the html file may take long hours. You can reduce the running time by setting fewer things to display. 
     * If you have set everything you wanted, simply knit the document.
 
