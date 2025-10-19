@@ -46,7 +46,7 @@ You can replicate our simulation with your own settings. You can freely modify t
       
       - The first part of the code in the **Sim_Cont_Many.R** file generates the meta-analyses (e.g. number of studies in the 2 groups, standard errors, true effects, observed effects, etc.). The code generates these in a list containing 11 arrays, each array is a characteristic of the generated meta-analyses. This list is saved as an R.Data file, which has the general name: **Gen_list_distribution_Run_run.RData**. For example, if you set the normal distribution with 1 Run, the name of the file will be **Gen_list_Normal_Run_1.RData** and the program will place it in the folder called Normal.
      
-      - The second part of the **Sim_Cont_Many.R** file computes the lower and upper PI boundaries using the investigated PI methods. This part of the code also computes some additional property, e.g. the theoretical PI limits, the I square value, etc.  
+      - The second part of the **Sim_Cont_Many.R** file computes the lower and upper PI boundaries using the investigated PI methods. This part of the code also computes some additional properties, e.g. the theoretical PI limits, the I square value, etc. These are also stored in arrays and put in a list. This list is also saved as an R.Data file, which has the general name: **Res_list_Many_distribution_Run_run.RData**. For example, if you set the skewed normal distribution with skewness parameter 75 (Skewed_Normal_75) with 1 Run, the name of the file will be **Res_list_Many_Skewed_Normal_75_Run_1.RData** and the program will place it in the folder called Skewed_Normal_75.  
 
 
 
