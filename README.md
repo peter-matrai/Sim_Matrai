@@ -62,6 +62,10 @@ You can replicate our simulation with your own settings. You can freely modify t
 5. Creating a HTML file to display the results
     * Open the **Sim_Cont_Results.Rmd**, knitting this file will create a html file showing the results, based on your settings.  
     * You can set the name of the html in line 11 by replacing **Sim_PI** with any other name in the code: `paste0("Sim_PI", ".html")))`.
-    * All the other necessary settings are in the chunk named 'base_settings', between lines 51-155 .
+    * All the other necessary settings are in the **chunk named 'base_settings'**, between lines 51-155 .
     * You do not need to modify the basedir setting, it will be automatically the folder where your PI_Sim_Matrai.Rproj R project file is located.
+    * Between lines 87-103 you can set for which distributions you want to display results and which runs you want to use. You need to have Res_list RData file(s) in the appropriate distribution folder(s), otherwise you will get an error. For example, if you want to show results for the normal distribution of 2 runs, you need to following setting:
+      - `Normal_to_display <- 1`
+      - `Normal_run_to_display <- 1:2`
+      You also need to have **Res_list_Many_Normal_Run_1.RData** and **Res_list_Many_Normal_Run_2.RData** files in your folder for the Normal distrtion. 
 
