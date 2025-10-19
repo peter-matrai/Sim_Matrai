@@ -73,5 +73,7 @@ You can replicate our simulation with your own settings. You can freely modify t
     * In line 125 you can set whether you want to display the parametric bootstrap method. If you do, you need to download the Res_list file(s) and place them in the appropriate distribution folder, as it is explained in the previous section.
     * You do not need to modify the settings between lines 129-139.
     * In line 145, you can specify whether you want to display the histogram of coverage probabilities. Set TRUE of FALSE.
-    * In line 149, you can specify whether you want to display the 5 performance plots. Set TRUE of FALSE.
+    * In line 149, you can specify whether you want to display the 5 performance plots. Set TRUE of FALSE. If you set TRUE, you need to have at least the **Gen_list_Normal_Run_1.RData** file in your 'Normal' folder, because the program computes the true mean standard errors from this file, and it will be shown on these plots. 
+    * If you set many things to display, the creation of the html file may take long hours.
+    * If you have set everything you wanted, simply knit the document.
 
