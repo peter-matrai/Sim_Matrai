@@ -64,7 +64,8 @@ You can replicate our simulation with your own settings. You can freely modify t
     * You can set the name of the html in line 11 by replacing **Sim_PI** with any other name in the code: `paste0("Sim_PI", ".html")))`.
     * All the other necessary settings are in the **chunk named 'base_settings'**, between lines 51-155 .
     * You do not need to modify the basedir setting, it will be automatically the folder where your PI_Sim_Matrai.Rproj R project file is located.
-    * Between lines 87-103 you can set for which distributions you want to display results and which runs you want to use. You need to have Res_list RData file(s) in the appropriate distribution folder(s), otherwise you will get an error. For example, if you want to show results for the normal distribution of 2 runs, you need to following setting:
+    * Between lines 87-103 you can set for which distributions you want to display results and which runs you want to use. You need to have the appropriate Res_list RData file(s) in the appropriate distribution folder(s), otherwise you will get an error. Set '1' if you want to show the given distribution and set '0' if you do not want. Also, set the Runs in the format 1:k, if you want to process Run_1, Run_2, ...Run_k. 
+    * For example, if you want to show results for the normal distribution of 2 runs, you need to following setting:
       - `Normal_to_display <- 1`
       - `Normal_run_to_display <- 1:2`
       You also need to have **Res_list_Many_Normal_Run_1.RData** and **Res_list_Many_Normal_Run_2.RData** files in your folder for the Normal distrtion. 
