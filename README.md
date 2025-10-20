@@ -29,7 +29,7 @@ We know that our codes are not very user friendly. This is because we developed 
 
 
 2. You need to have a very specific folder system in your base directory, which you can create one of the two following ways:   
-    * If you would like to generate 'input data' (simulated meta-analyses with predifined settings), compute the PI limits of the tested methods, and visualize the results, first you need to create the following folder system in your base directory, **manually**:
+    * If you would like to generate 'input data' (simulated meta-analyses with predifined settings), first you need to create the following folder system in your base directory, **manually**:
       - create a folder in your base directory named **RE_distributions** with 6 empty folders in it with the following names:
         - **Normal**  
         - **Uniform**  
