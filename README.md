@@ -73,7 +73,7 @@ We know that our codes are not very user friendly. This is because we developed 
       - `Normal_run_to_display <- 1:2`  
       You also need to have the **Res_list_Many_Normal_Run_1.RData** and **Res_list_Many_Normal_Run_2.RData** files in your folder for the Normal distribution.
     * Between lines 110-116, you can choose which methods you want to display. Set '1' to display the given method and set '0' otherwise.
-    * In line 125 you can set whether you want to display the parametric bootstrap method. If you do, you need to download the Res_list file(s) for this method and place them in the appropriate distribution folder, as it is explained in the previous section.
+    * In line 125 you can set whether you want to display the parametric bootstrap method. If you do, you need to download the Res_list file(s) for this method and place them in the appropriate distribution folder(s), as it is explained in the previous section.
     * You do not need to modify the settings between lines 129-139.
     * In line 145, you can specify whether you want to display the histograms of the coverage probabilities. Set TRUE of FALSE.
     * In line 149, you can specify whether you want to display the 5 performance plots. Set TRUE of FALSE. If you set TRUE, you need to have at least the **Gen_list_Normal_Run_1.RData** file in your 'Normal' folder, because the program computes the true mean standard errors from this file.
