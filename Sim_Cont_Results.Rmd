@@ -54,18 +54,11 @@ knitr::opts_chunk$set(echo = FALSE,
 
 # In this next chunk you can set:
 
-#         - a basedir, the location of the "Base_parameters.R"  file (by default, this is the folder where the "PI_Sim_Matrai.Rproj" file is located)
 #         - which distribution and which runs you want to display
 #         - which methods you want to display
 #         - if you want to display the parametric bootstrap method (Nag_to_display)
 #         - if you want to display the histograms of coverage probabilities (Hist_to_display)
 #         - if you want to display the other 5 plots (Other_plots_to_display)
-
-# As it is explained in the Github Readme file:
-
-# The files (randomly generated MAs from different distributions) loaded, processed and visualized in this .Rmd are 
-#                                         -  either should be downloaded from "https://mega.nz/folder/d7o0VI6I#IDIanHGoP21XiwcZEPaYhg"  
-#                                         -  or you can set up a folder system manually in your basedir folder and generate MAs yourself and use those
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -85,21 +78,21 @@ knitr::opts_chunk$set(echo = FALSE,
 
 
 Normal_to_display <- 1
-Normal_run_to_display <- 1:5
+Normal_run_to_display <- 1:1
 
 Uniform_to_display <- 0
 Uniform_run_to_display <- 1:5
 
-Skewed_Normal_50_to_display <- 1
+Skewed_Normal_50_to_display <- 0
 Skewed_Normal_50_run_to_display <- 1:5
 
-Skewed_Normal_75_to_display <- 1
+Skewed_Normal_75_to_display <- 0
 Skewed_Normal_75_run_to_display <- 1:5
 
-Skewed_Normal_99_to_display <- 1
+Skewed_Normal_99_to_display <- 0
 Skewed_Normal_99_run_to_display <- 1:5
 
-Bimodal_to_display <- 1
+Bimodal_to_display <- 0
 Bimodal_run_to_display <- 1:5
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -122,7 +115,7 @@ Wang_to_display <- 1        # this is the Ensemble method
 # For example, for the normal distrbution it is in the folder called "Normal" with the name "Res_list_Nag_Normal_Run_1.RData". 
 # You can find the files for the other distributions similarly. 
 
-Nag_to_display <- 1
+Nag_to_display <- 0
 
 # you can set the runs for the the parametric bootstrap method in the form 1:n, it means that runs from 1 to n will be processed and displayed. There is only 1 run available for this method with 1000 repetitions in the simulation of the article.
 
@@ -2404,6 +2397,7 @@ for (z in 1:length(n_pattern_ciklus)) {
   cat("  \n")
 }
 ```
+
 
 
 
