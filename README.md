@@ -18,7 +18,9 @@
 
 
 ## For what purpose you can use these codes
-You can replicate our simulation with your own settings. You can freely modify the parameters, test other true effects distributions, test other PI methods or modify the ones we used. You can easily modify the code to define new performance measures and display the results. The details of our simulation methods are described in the article in section 4. 
+You can replicate our simulation with your own settings. You can freely modify the parameters, test other true effects distributions, test other PI methods or modify the ones we used. You can easily modify the code to define new performance measures and display the results. The details of our simulation methods are described in the article in section 4.  
+
+We know that our codes are not very user friendly. This is because we developed it for ourselves, specifically for our research article, and designed it the way that we can test our ideas. However, we decided to make it public because we think it might be useful for other researchers.    
 
 
 ## How to run the codes
